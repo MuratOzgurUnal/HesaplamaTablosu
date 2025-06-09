@@ -1,0 +1,94 @@
+<div id="npl-hesaplayici" class="calculator-container" style="justify-content: center;">
+    <div class="calculator-column" style="flex: 0 1 600px;">
+        <h3>NPL Hesaplama Bilgileri</h3>
+        <form id="npl-form" onsubmit="return false;">
+            <div class="form-group">
+                <label for="takipteki-stok">Takipteki Krediler Stok (TL)</label>
+                <input type="text" id="takipteki-stok" inputmode="numeric" placeholder="Örn: 5.000.000" required>
+            </div>
+            <div class="form-group">
+                <label for="nakit-krediler">Nakit Krediler (TL)</label>
+                <input type="text" id="nakit-krediler" inputmode="numeric" placeholder="Örn: 80.000.000" required>
+            </div>
+             <div class="form-group">
+                <label for="kredi-kartlari">Kredi Kartları Bakiye (TL)</label>
+                <input type="text" id="kredi-kartlari" inputmode="numeric" placeholder="Örn: 15.000.000" required>
+            </div>
+            <div class="form-group">
+                <label for="npl-butce">NPL Rasyosu Bütçe (%)</label>
+                <input type="text" id="npl-butce" inputmode="decimal" placeholder="Örn: 2,5" required>
+            </div>
+            <div class="button-group" style="justify-content: center;">
+                <button type="button" id="hesapla-btn" class="btn btn-primary"><i class="fa-solid fa-calculator"></i> Hesapla</button>
+            </div>
+        </form>
+        
+        <!-- Sonuç Alanı -->
+        <div id="result-container" class="hidden" style="margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--light-gray); border-radius: var(--border-radius); text-align: center; background-color: #f8f9fa;">
+            <p style="margin: 0; font-size: 1.1rem; color: var(--secondary-color);">Ne kadar kredi kullandırırsam NPL'den tam puan alırım?</p>
+            <p id="sonuc-tutari" style="font-size: 2rem; font-weight: 700; color: var(--primary-color); margin-top: 0.5rem;">0,00 TL</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const container = document.getElementById('npl-hesaplayici');
+        if (!container) return;
+
+        const hesaplaBtn = container.querySelector('#hesapla-btn');
+        const takiptekiStokInput = container.querySelector('#takipteki-stok');
+        const nakitKredilerInput = container.querySelector('#nakit-krediler');
+        const krediKartlariInput = container.querySelector('#kredi-kartlari');
+        const nplButceInput = container.querySelector('#npl-butce');
+        const resultContainer = container.querySelector('#result-container');
+        const sonucTutariP = container.querySelector('#sonuc-tutari');
+
+        // Yardımcı fonksiyonlar
+        const formatCurrency = (value) => value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+        const parseFormattedNumber = (value) => parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
+        const parseFloatComma = (value) => parseFloat(String(value).replace(',', '.'));
+        const formatNumberInput = (input) => {
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                e.target.value = value ? new Intl.NumberFormat('tr-TR').format(value) : '';
+            });
+        };
+
+        // Girdi alanlarına otomatik sayı formatlamayı uygula
+        formatNumberInput(takiptekiStokInput);
+        formatNumberInput(nakitKredilerInput);
+        formatNumberInput(krediKartlariInput);
+
+        hesaplaBtn.addEventListener('click', () => {
+            const takiptekiStok = parseFormattedNumber(takiptekiStokInput.value);
+            const nakitKrediler = parseFormattedNumber(nakitKredilerInput.value);
+            const krediKartlariBakiye = parseFormattedNumber(krediKartlariInput.value);
+            const nplRasyosuButce = parseFloatComma(nplButceInput.value);
+
+            if ([takiptekiStok, nakitKrediler, krediKartlariBakiye, nplRasyosuButce].some(isNaN)) {
+                alert("Lütfen tüm alanlara geçerli sayılar giriniz.");
+                return;
+            }
+
+            if (nplRasyosuButce === 0) {
+                alert("NPL Rasyosu Bütçesi sıfır olamaz. Lütfen geçerli bir oran girin.");
+                return;
+            }
+
+            // --- Hesaplama ---
+            // Formül: ((Takipteki Krediler Stok/NPL Rasyosu Bütçe)-Takipteki Krediler Stok-Kredi Kartları Bakiye)-Nakit Krediler
+            
+            const nplOran = nplRasyosuButce / 100; // Yüzdeyi ondalık sayıya çevir
+            
+            // Parantez içindeki ilk bölüm: Hedeflenen toplam kredi portföyü
+            const hedefToplamPortfoy = takiptekiStok / nplOran;
+
+            const sonuc = hedefToplamPortfoy - takiptekiStok - krediKartlariBakiye - nakitKrediler;
+            
+            // Sonucu göster
+            sonucTutariP.textContent = formatCurrency(sonuc);
+            resultContainer.classList.remove('hidden');
+        });
+    })();
+</script>

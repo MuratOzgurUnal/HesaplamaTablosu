@@ -1,0 +1,87 @@
+<!-- START OF FILE gelisim_hesaplama.html -->
+
+<div id="gelisim-hesaplayici" class="calculator-container" style="justify-content: center;">
+    <div class="calculator-column" style="flex: 0 1 600px;">
+        <h3>Gelişim Hesaplama Bilgileri</h3>
+        <form id="gelisim-form" onsubmit="return false;">
+            <div class="form-group">
+                <label for="sene-basi">Sene Başı Değeri (TL)</label>
+                <input type="text" id="sene-basi" inputmode="numeric" placeholder="Örn: 1.000.000" required>
+            </div>
+            <div class="form-group">
+                <label for="guncel-bakiye">Güncel Bakiye (TL)</label>
+                <input type="text" id="guncel-bakiye" inputmode="numeric" placeholder="Örn: 1.250.000" required>
+            </div>
+            <div class="button-group" style="justify-content: center;">
+                <button type="button" id="hesapla-btn" class="btn btn-primary"><i class="fa-solid fa-calculator"></i> Hesapla</button>
+            </div>
+        </form>
+        
+        <!-- Sonuç Alanı -->
+        <div id="result-container" class="hidden" style="margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--light-gray); border-radius: var(--border-radius); text-align: center; background-color: #f8f9fa;">
+            <p style="margin: 0; font-size: 1.1rem; color: var(--secondary-color);">Yıllık Gelişim Oranı:</p>
+            <p id="sonuc-orani" style="font-size: 2.5rem; font-weight: 700; margin-top: 0.5rem;">0,00 %</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const container = document.getElementById('gelisim-hesaplayici');
+        if (!container) return;
+
+        // DOM Elementleri
+        const hesaplaBtn = container.querySelector('#hesapla-btn');
+        const seneBasiInput = container.querySelector('#sene-basi');
+        const guncelBakiyeInput = container.querySelector('#guncel-bakiye');
+        const resultContainer = container.querySelector('#result-container');
+        const sonucOraniP = container.querySelector('#sonuc-orani');
+
+        // Yardımcı fonksiyonlar
+        const parseFormattedNumber = (value) => parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
+        const formatNumberInput = (input) => {
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                e.target.value = value ? new Intl.NumberFormat('tr-TR').format(value) : '';
+            });
+        };
+        const formatPercentage = (value) => {
+            return `${value.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`;
+        };
+
+        // Girdi alanlarına otomatik sayı formatlamayı uygula
+        formatNumberInput(seneBasiInput);
+        formatNumberInput(guncelBakiyeInput);
+
+        hesaplaBtn.addEventListener('click', () => {
+            const seneBasi = parseFormattedNumber(seneBasiInput.value);
+            const guncelBakiye = parseFormattedNumber(guncelBakiyeInput.value);
+
+            if (isNaN(seneBasi) || isNaN(guncelBakiye)) {
+                alert("Lütfen tüm alanlara geçerli sayılar giriniz.");
+                return;
+            }
+
+            if (seneBasi === 0) {
+                alert("Sene Başı değeri sıfır olamaz, çünkü bu bir bölme hatasına neden olur.");
+                return;
+            }
+
+            // --- Hesaplama ---
+            // Standart gelişim formülü: ((Güncel / Başlangıç) - 1) * 100
+            const gelisimOrani = ((guncelBakiye / seneBasi) - 1) * 100;
+            
+            // Sonucu renklendir
+            if(gelisimOrani >= 0) {
+                 sonucOraniP.style.color = "var(--success-color)";
+            } else {
+                 sonucOraniP.style.color = "var(--danger-color)";
+            }
+
+            // Sonucu göster
+            sonucOraniP.textContent = formatPercentage(gelisimOrani);
+            resultContainer.classList.remove('hidden');
+        });
+    })();
+</script>
+<!-- END OF FILE gelisim_hesaplama.html -->

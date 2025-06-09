@@ -1,0 +1,85 @@
+<div id="ortalama-vade-hesaplayici" class="calculator-container" style="justify-content: center;">
+    <div class="calculator-column" style="flex: 0 1 600px;">
+        <h3>Hesaplama Bilgileri</h3>
+        <form id="ortalama-vade-form" onsubmit="return false;">
+            <div class="form-group">
+                <label for="aylik-butce">Aylık Toplam Bütçe (TL)</label>
+                <input type="text" id="aylik-butce" inputmode="numeric" placeholder="Örn: 50.000" required>
+            </div>
+            <div class="form-group">
+                <label for="gerceklesen-tutar">Ay Başından Bugüne Gerçekleşen Tutar (TL)</label>
+                <input type="text" id="gerceklesen-tutar" inputmode="numeric" placeholder="Örn: 15.000" required>
+            </div>
+            <div class="button-group" style="justify-content: center;">
+                <button type="button" id="hesapla-btn" class="btn btn-primary"><i class="fa-solid fa-calculator"></i> Hesapla</button>
+            </div>
+        </form>
+        
+        <!-- Sonuç Alanı -->
+        <div id="result-container" class="hidden" style="margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--light-gray); border-radius: var(--border-radius); text-align: center; background-color: #f8f9fa;">
+            <!-- METİN DEĞİŞTİ -->
+            <p style="margin: 0; font-size: 1.1rem; color: var(--secondary-color);">Bütçenizi gerçekleştirmek için <strong style="color: var(--text-color);">bugün</strong> girmeniz gereken tutar:</p>
+            <p id="sonuc-tutari" style="font-size: 2rem; font-weight: 700; color: var(--primary-color); margin-top: 0.5rem;">0,00 TL</p>
+            <p id="bilgi-metni" style="font-size: 0.9rem; color: var(--secondary-color); margin-top: 1rem;"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const container = document.getElementById('ortalama-vade-hesaplayici');
+        if (!container) return;
+
+        const hesaplaBtn = container.querySelector('#hesapla-btn');
+        const butceInput = container.querySelector('#aylik-butce');
+        const gerceklesenInput = container.querySelector('#gerceklesen-tutar');
+        const resultContainer = container.querySelector('#result-container');
+        const sonucTutariP = container.querySelector('#sonuc-tutari');
+        const bilgiMetniP = container.querySelector('#bilgi-metni');
+
+        const formatCurrency = (value) => value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+        const parseFormattedNumber = (value) => parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
+        const formatNumberInput = (input) => {
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                e.target.value = value ? new Intl.NumberFormat('tr-TR').format(value) : '';
+            });
+        };
+
+        formatNumberInput(butceInput);
+        formatNumberInput(gerceklesenInput);
+
+        hesaplaBtn.addEventListener('click', () => {
+            const butce = parseFormattedNumber(butceInput.value);
+            const gerceklesen = parseFormattedNumber(gerceklesenInput.value);
+
+            if (isNaN(butce) || isNaN(gerceklesen)) {
+                alert("Lütfen geçerli sayılar giriniz.");
+                return;
+            }
+
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth();
+            const currentDayOfMonth = today.getDate();
+            const totalDaysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const remainingDays = totalDaysInMonth - currentDayOfMonth;
+            const remainingBudget = butce - gerceklesen;
+            let bugunGirilmesiGerekenTutar = 0;
+            
+            if (remainingDays > 0) {
+                 bugunGirilmesiGerekenTutar = (remainingBudget / remainingDays) * totalDaysInMonth;
+                 bilgiMetniP.textContent = `Formüle göre: (${formatCurrency(remainingBudget)} / ${remainingDays} gün) * ${totalDaysInMonth} gün`;
+            } else if (remainingDays === 0) {
+                 bugunGirilmesiGerekenTutar = remainingBudget;
+                 bilgiMetniP.textContent = `Bugün ayın son günü olduğu için kalan bütçenin tamamı (${formatCurrency(remainingBudget)}) girilmelidir.`;
+            } else {
+                 bugunGirilmesiGerekenTutar = 0; // Geçmiş tarih
+                 bilgiMetniP.textContent = "Hesaplama yapılamıyor. Ay sona ermiş.";
+            }
+             
+            sonucTutariP.textContent = formatCurrency(bugunGirilmesiGerekenTutar);
+            resultContainer.classList.remove('hidden');
+        });
+    })();
+</script>
