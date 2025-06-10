@@ -1,0 +1,79 @@
+<!-- START OF FILE vadesiz_gelir.html -->
+
+<div id="vadesiz-gelir-hesaplayici" class="calculator-container" style="justify-content: center;">
+    <div class="calculator-column" style="flex: 0 1 600px;">
+        <h3>Hesaplama Bilgileri</h3>
+        <form id="vadesiz-gelir-form" onsubmit="return false;">
+            <div class="form-group">
+                <label for="tutar">Vadesiz Tutar (TL)</label>
+                <input type="text" id="tutar" inputmode="numeric" placeholder="Örn: 500.000" required>
+            </div>
+            <div class="form-group">
+                <label for="itr-oran">ITR Oranı (%)</label>
+                <input type="text" id="itr-oran" inputmode="decimal" placeholder="ITR oranını girin, örn: 15,5" required>
+            </div>
+            <div class="form-group">
+                <label for="gun-sayisi">Gün Sayısı</label>
+                <input type="number" id="gun-sayisi" placeholder="Örn: 30" required>
+            </div>
+            <div class="button-group" style="justify-content: center;">
+                <button type="button" id="hesapla-btn" class="btn btn-primary"><i class="fa-solid fa-calculator"></i> Hesapla</button>
+            </div>
+        </form>
+        
+        <!-- Sonuç Alanı -->
+        <div id="result-container" class="hidden" style="margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--light-gray); border-radius: var(--border-radius); text-align: center; background-color: #f8f9fa;">
+            <p style="margin: 0; font-size: 1.1rem; color: var(--secondary-color);">Vadesizde kaldığı süre boyunca yaratacağı gelir etkisi:</p>
+            <p id="sonuc-tutari" style="font-size: 2rem; font-weight: 700; color: var(--primary-color); margin-top: 0.5rem;">0,00 TL</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const container = document.getElementById('vadesiz-gelir-hesaplayici');
+        if (!container) return;
+
+        // DOM Elementleri
+        const hesaplaBtn = container.querySelector('#hesapla-btn');
+        const tutarInput = container.querySelector('#tutar');
+        const itrOranInput = container.querySelector('#itr-oran');
+        const gunSayisiInput = container.querySelector('#gun-sayisi');
+        const resultContainer = container.querySelector('#result-container');
+        const sonucTutariP = container.querySelector('#sonuc-tutari');
+
+        // Yardımcı Fonksiyonlar
+        const formatCurrency = (value) => value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+        const parseFormattedNumber = (value) => parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
+        const parseFloatComma = (value) => parseFloat(String(value).replace(',', '.'));
+        const formatNumberInput = (input) => {
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                e.target.value = value ? new Intl.NumberFormat('tr-TR').format(value) : '';
+            });
+        };
+
+        // Girdi alanına otomatik sayı formatlamayı uygula
+        formatNumberInput(tutarInput);
+
+        hesaplaBtn.addEventListener('click', () => {
+            const vadesizTutar = parseFormattedNumber(tutarInput.value);
+            const itrOrani = parseFloatComma(itrOranInput.value);
+            const gunSayisi = parseInt(gunSayisiInput.value);
+
+            if (isNaN(vadesizTutar) || isNaN(itrOrani) || isNaN(gunSayisi)) {
+                alert("Lütfen tüm alanlara geçerli sayılar giriniz.");
+                return;
+            }
+
+            // --- Hesaplama ---
+            // Formül: Gelir = Anapara * (Yıllık Faiz Oranı / 100 / 365) * Gün Sayısı
+            const gelir = vadesizTutar * (itrOrani / 100 / 365) * gunSayisi;
+            
+            // Sonucu göster
+            sonucTutariP.textContent = formatCurrency(gelir);
+            resultContainer.classList.remove('hidden');
+        });
+    })();
+</script>
+<!-- END OF FILE vadesiz_gelir.html -->
