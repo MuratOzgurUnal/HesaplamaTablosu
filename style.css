@@ -4,6 +4,11 @@
    1. KÖK DEĞİŞKENLER VE GENEL SIFIRLAMA
    ========================================================================== */
 
+/* YENİ: Temel yazı tipi boyutunu küçülterek genel ölçeklendirme sağlıyoruz */
+html {
+    font-size: 15px; /* Varsayılan 16px'den küçültüldü */
+}
+
 :root {
     --primary-color: #007bff;
     --secondary-color: #6c757d;
@@ -38,7 +43,7 @@ body {
 
 header {
     background-color: var(--surface-color);
-    padding: 1.5rem 5%;
+    padding: 1.25rem 5%; /* Küçültüldü */
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     display: flex;
     justify-content: space-between;
@@ -78,12 +83,12 @@ footer {
 #selection-screen {
     display: flex;
     flex-direction: column;
-    gap: 2.5rem; /* İki satır arasındaki boşluk */
+    gap: 2rem; /* İki satır arasındaki boşluk azaltıldı */
 }
 
 .tool-row {
     display: grid;
-    gap: 1.5rem;
+    gap: 1.25rem; /* Kartlar arası boşluk azaltıldı */
     grid-template-columns: 1fr; /* Mobil için varsayılan: Tek sütun */
 }
 
@@ -100,21 +105,21 @@ footer {
         grid-template-columns: repeat(4, 1fr);
     }
     #bottom-row {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr); /* 3'ten 4'e çıkarıldı */
     }
 }
 
 /* Geniş masaüstü ekranlar için */
 @media (min-width: 1200px) {
-    #bottom-row {
-        grid-template-columns: repeat(5, 1fr);
+     #bottom-row {
+        grid-template-columns: repeat(6, 1fr); /* 5'ten 6'ya çıkarıldı */
     }
 }
 
 
 .tool-card {
     background-color: var(--surface-color);
-    padding: 2rem;
+    padding: 1.5rem; /* Küçültüldü */
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     text-align: center;
@@ -137,13 +142,14 @@ footer {
 }
 
 .tool-card h2 {
+    font-size: 1.1rem; /* Küçültüldü */
     font-weight: 500;
     margin-bottom: 0.5rem;
     flex-grow: 1; /* Başlıkların aynı hizada başlaması için */
 }
 
 .tool-card p {
-    font-size: 0.9rem;
+    font-size: 0.85rem; /* Küçültüldü */
     color: var(--secondary-color);
 }
 
@@ -154,7 +160,7 @@ footer {
 
 #content-area {
     background: var(--surface-color);
-    padding: 2.5rem;
+    padding: 2rem; /* Küçültüldü */
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
 }
@@ -167,7 +173,7 @@ footer {
 
 .calculator-column {
     flex: 1;
-    min-width: 320px;
+    min-width: 300px; /* Biraz küçültüldü */
 }
 
 /* Form Elemanları */
@@ -179,16 +185,17 @@ footer {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
+    font-size: 0.95rem; /* Küçültüldü */
 }
 
 .form-group input,
 .form-group select {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.65rem; /* Küçültüldü */
     border: 1px solid #ced4da;
     border-radius: var(--border-radius);
     font-family: 'Poppins', sans-serif;
-    font-size: 1rem;
+    font-size: 0.95rem; /* Küçültüldü */
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -201,8 +208,8 @@ footer {
 
 /* Butonlar */
 .btn {
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
+    padding: 0.65rem 1.25rem; /* Küçültüldü */
+    font-size: 0.95rem; /* Küçültüldü */
     font-weight: 500;
     border: none;
     border-radius: var(--border-radius);
@@ -244,9 +251,10 @@ footer {
     border-collapse: collapse;
 }
 .results-table th, .results-table td {
-    padding: 0.8rem;
+    padding: 0.7rem; /* Küçültüldü */
     text-align: left;
     border-bottom: 1px solid var(--light-gray);
+    font-size: 0.9rem; /* Küçültüldü */
 }
 .results-table tr:last-child td { border-bottom: none; }
 .results-table td:last-child { text-align: right; font-weight: 600; }
@@ -256,7 +264,7 @@ footer {
 /* Karşılaştırma farkını gösteren kutular */
 #mevduat-fark-container, #kredi-fark-container {
     padding: 1rem 1.5rem; margin-top: 2rem; border-radius: var(--border-radius);
-    text-align: center; font-size: 1.1rem; font-weight: 500; width: 100%;
+    text-align: center; font-size: 1rem; font-weight: 500; width: 100%;
 }
 .fark-pozitif { background-color: #e9f7ef; color: var(--success-color); border: 1px solid var(--success-color); }
 .fark-negatif { background-color: #fce8e6; color: var(--danger-color); border: 1px solid var(--danger-color); }
@@ -303,12 +311,16 @@ footer {
 }
 #cek-iskonto-hesaplayici th { background-color: var(--background-color); font-weight: 600; }
 #cek-iskonto-hesaplayici .cek-vadesi, #cek-iskonto-hesaplayici .cek-tutari {
-    font-size: 1.1rem; font-weight: 500; padding: 0.8rem;
-    text-align: center; min-width: 180px;
+    font-size: 1rem; /* Küçültüldü */
+    font-weight: 500;
+    padding: 0.7rem; /* Küçültüldü */
+    text-align: center;
+    min-width: 160px; /* Küçültüldü */
 }
 #cek-iskonto-hesaplayici .delete-cek-btn {
     background: var(--danger-color); color: white; border: none; border-radius: 50%;
-    width: 30px; height: 30px; cursor: pointer; font-size: 1rem; line-height: 1;
+    width: 28px; height: 28px; /* Küçültüldü */
+    cursor: pointer; font-size: 0.9rem; line-height: 1;
 }
 #cek-iskonto-hesaplayici .total-summary {
     margin-top: 2rem; padding: 1.5rem; background: #f8f9fa;
@@ -319,6 +331,9 @@ footer {
 }
 #cek-iskonto-hesaplayici .summary-row:last-child { border-bottom: none; }
 #cek-iskonto-hesaplayici .summary-row.net-total {
-    font-size: 1.2rem; font-weight: 700; color: var(--primary-color); margin-top: 1rem;
+    font-size: 1.1rem; /* Küçültüldü */
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-top: 1rem;
 }
 /* END OF FILE style.css */
