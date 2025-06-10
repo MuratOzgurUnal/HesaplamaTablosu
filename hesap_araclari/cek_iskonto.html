@@ -1,3 +1,5 @@
+<!-- START OF FILE cek_iskonto.html -->
+
 <style>
     /* Bu araca özel tablo stilleri */
     #cek-iskonto-hesaplayici .table-container {
@@ -19,7 +21,6 @@
         background-color: var(--background-color);
         font-weight: 600;
     }
-    /* GÜNCELLENDİ: Vade ve Tutar alanlarını daha belirgin yap */
     #cek-iskonto-hesaplayici .cek-vadesi,
     #cek-iskonto-hesaplayici .cek-tutari {
         font-size: 1.1rem;
@@ -66,10 +67,17 @@
 <div id="cek-iskonto-hesaplayici">
     <h3>Çek Bilgileri</h3>
     
-    <!-- YENİ: Tek faiz oranı alanı -->
-    <div class="form-group" style="max-width: 300px; margin: 0 auto 1.5rem auto;">
-        <label for="global-faiz" style="text-align: center; display: block; font-weight: 600;">Genel Faiz Oranı (%)</label>
-        <input type="text" id="global-faiz" class="form-group" inputmode="decimal" placeholder="Örn: 52,5" style="text-align: center; font-size: 1.2rem;">
+    <!-- GÜNCELLENDİ: Faiz ve Kullandırım Ücreti alanları yan yana -->
+    <div class="form-group" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem;">
+        <div style="flex: 1; min-width: 200px; max-width: 300px;">
+            <label for="global-faiz" style="text-align: center; display: block; font-weight: 600;">Güncel Faiz Oranı (%)</label>
+            <input type="text" id="global-faiz" class="form-group" inputmode="decimal" placeholder="Örn: 52,5" style="text-align: center; font-size: 1.2rem;">
+        </div>
+        <!-- YENİ: Kullanıcının gireceği kullandırım ücreti oranı alanı -->
+        <div style="flex: 1; min-width: 200px; max-width: 300px;">
+            <label for="global-kullandirim-ucreti" style="text-align: center; display: block; font-weight: 600;">Kullandırım Ücreti Oranı (%)</label>
+            <input type="text" id="global-kullandirim-ucreti" class="form-group" inputmode="decimal" placeholder="Örn: 1,1" style="text-align: center; font-size: 1.2rem;">
+        </div>
     </div>
 
     <div class="table-container">
@@ -109,11 +117,12 @@
         if (!container) return;
 
         // Sabitler
-        const KULLANDIRIM_UCRETI_ORANI = 0.011;
+        // const KULLANDIRIM_UCRETI_ORANI = 0.011; // KALDIRILDI: Artık kullanıcıdan alınacak.
         const BSMV_ORANI = 0.05;
 
         // DOM Elementleri
         const globalFaizInput = container.querySelector('#global-faiz');
+        const kullandirimUcretiInput = container.querySelector('#global-kullandirim-ucreti'); // YENİ
         const cekListesi = container.querySelector('#cek-listesi');
         const yeniCekEkleBtn = container.querySelector('#yeni-cek-ekle-btn');
         const hesaplaBtn = container.querySelector('#hesapla-btn');
@@ -130,7 +139,7 @@
             });
         };
 
-        // Yeni çek satırı oluşturan fonksiyon (GÜNCELLENDİ)
+        // Yeni çek satırı oluşturan fonksiyon
         const createCekRow = () => {
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -156,17 +165,25 @@
             }
         });
 
-        // Ana Hesaplama Fonksiyonu (GÜNCELLENDİ)
+        // Ana Hesaplama Fonksiyonu
         hesaplaBtn.addEventListener('click', () => {
             let toplamCekTutari = 0, toplamFaiz = 0, toplamKullandirimUcreti = 0, toplamBsmv = 0, toplamNetTutar = 0;
             let isValid = true;
             
+            // GÜNCELLENDİ: Değerler kullanıcıdan alınıyor
             const globalFaiz = parseFloatComma(globalFaizInput.value);
+            const kullandirimOrani = parseFloatComma(kullandirimUcretiInput.value);
 
             if (isNaN(globalFaiz)) {
                 alert("Lütfen geçerli bir Genel Faiz Oranı girin.");
                 return;
             }
+            // YENİ: Kullandırım ücreti oranı için doğrulama
+            if (isNaN(kullandirimOrani)) {
+                alert("Lütfen geçerli bir Kullandırım Ücreti Oranı girin.");
+                return;
+            }
+
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -174,11 +191,10 @@
             const rows = cekListesi.querySelectorAll('tr');
             
             rows.forEach(row => {
-                if (!isValid) return; // Hata varsa diğerlerini kontrol etme
+                if (!isValid) return;
 
                 const vadeInput = row.querySelector('.cek-vadesi');
                 const tutarInput = row.querySelector('.cek-tutari');
-
                 const vade = new Date(vadeInput.value);
                 const tutar = parseFormattedNumber(tutarInput.value);
 
@@ -195,7 +211,8 @@
                 }
 
                 const faizTutari = (tutar * (globalFaiz / 100) / 365) * gunSayisi;
-                const kullandirimUcreti = tutar * KULLANDIRIM_UCRETI_ORANI;
+                // DEĞİŞTİRİLDİ: Artık sabit oran yerine kullanıcı girdisi kullanılıyor
+                const kullandirimUcreti = tutar * (kullandirimOrani / 100); 
                 const bsmv = faizTutari * BSMV_ORANI;
                 const netTutar = tutar - faizTutari - kullandirimUcreti - bsmv;
 
@@ -223,3 +240,4 @@
 
     })();
 </script>
+<!-- END OF FILE cek_iskonto.html -->
