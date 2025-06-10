@@ -1,3 +1,5 @@
+<!-- START OF FILE ortalama_vade.html -->
+
 <div id="ortalama-vade-hesaplayici" class="calculator-container" style="justify-content: center;">
     <div class="calculator-column" style="flex: 0 1 600px;">
         <h3>Hesaplama Bilgileri</h3>
@@ -63,16 +65,26 @@
             const currentMonth = today.getMonth();
             const currentDayOfMonth = today.getDate();
             const totalDaysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            const remainingDays = totalDaysInMonth - currentDayOfMonth;
+            
+            // --- DEĞİŞİKLİK BURADA ---
+            // "Geçen gün" sayısını bugünü hariç tutarak hesaplıyoruz.
+            const gecenGunSayisi = currentDayOfMonth - 1;
+            // "Kalan gün" sayısını bugünü dahil ederek hesaplıyoruz.
+            const kalanGunSayisi = totalDaysInMonth - gecenGunSayisi;
+            
             const remainingBudget = butce - gerceklesen;
             let bugunGirilmesiGerekenTutar = 0;
             
-            if (remainingDays > 0) {
-                 bugunGirilmesiGerekenTutar = (remainingBudget / remainingDays) * totalDaysInMonth;
-                 bilgiMetniP.textContent = `Formüle göre: (${formatCurrency(remainingBudget)} / ${remainingDays} gün) * ${totalDaysInMonth} gün`;
-            } else if (remainingDays === 0) {
-                 bugunGirilmesiGerekenTutar = remainingBudget;
-                 bilgiMetniP.textContent = `Bugün ayın son günü olduğu için kalan bütçenin tamamı (${formatCurrency(remainingBudget)}) girilmelidir.`;
+            if (kalanGunSayisi > 0) {
+                 // Formül, yeni 'kalanGunSayisi' değerini kullanacak şekilde güncellendi.
+                 bugunGirilmesiGerekenTutar = (remainingBudget / kalanGunSayisi) * totalDaysInMonth;
+
+                 // Bilgi metni de yeni hesaplamayı yansıtacak şekilde güncellendi.
+                 if (kalanGunSayisi === 1) {
+                    bilgiMetniP.textContent = `Bugün ayın son günü. Kalan bütçe (${formatCurrency(remainingBudget)}) üzerinden hesaplandı.`;
+                 } else {
+                    bilgiMetniP.textContent = `Formüle göre: (${formatCurrency(remainingBudget)} / ${kalanGunSayisi} gün) * ${totalDaysInMonth} gün`;
+                 }
             } else {
                  bugunGirilmesiGerekenTutar = 0; // Geçmiş tarih
                  bilgiMetniP.textContent = "Hesaplama yapılamıyor. Ay sona ermiş.";
@@ -83,3 +95,4 @@
         });
     })();
 </script>
+<!-- END OF FILE ortalama_vade.html -->
