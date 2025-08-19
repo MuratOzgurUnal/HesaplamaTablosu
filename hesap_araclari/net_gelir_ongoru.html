@@ -1,0 +1,305 @@
+<!-- START OF FILE net_gelir_ongoru.html -->
+
+<style>
+    /* ----- YENİ GENEL STİLLER ----- */
+    #net-gelir-ongoru-hesaplayici h3 { /* Ana başlık */
+        text-align: center;
+        margin-bottom: 2.5rem;
+        font-weight: 600;
+        font-size: 1.8rem;
+    }
+
+    /* ----- YENİ GİRDİ FORMU STİLLERİ ----- */
+    .form-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    #net-gelir-ongoru-hesaplayici .income-section {
+        flex: 1;
+        min-width: 300px;
+        border: 1px solid var(--light-gray);
+        border-radius: var(--border-radius);
+        padding: 1.5rem 2rem;
+        background-color: var(--surface-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    #net-gelir-ongoru-hesaplayici .income-section h4 {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 0.5rem;
+        color: var(--primary-color);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* ----- DİNAMİK GİRDİ ÖZETİ ----- */
+    .input-summary {
+        margin-top: 1rem;
+        height: 30px; /* Sabit yükseklik */
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .mini-bar-container {
+        flex-grow: 1;
+        height: 8px;
+        background-color: #eaf2ff;
+        border-radius: 4px;
+    }
+    .mini-bar-fill {
+        height: 100%;
+        width: 0%;
+        background-color: var(--secondary-color);
+        opacity: 0.6;
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+    .input-percentage {
+        font-weight: 600;
+        color: var(--secondary-color);
+        min-width: 60px; /* Oranın oynamasını engeller */
+        text-align: right;
+    }
+
+    /* ----- MİNİMALİST SONUÇ ALANI STİLLERİ ----- */
+    #result-container-minimal {
+        background-color: var(--surface-color);
+        border: 1px solid var(--light-gray);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .result-item { margin-bottom: 2.5rem; }
+    .result-item:last-child { margin-bottom: 0; }
+    .result-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 0.75rem;
+    }
+    .result-item-header .title { font-size: 1.2rem; font-weight: 600; }
+    .result-item-header .main-value { font-size: 1.5rem; font-weight: 700; text-align: right; }
+    
+    /* YENİ: Öngörü Etiketi */
+    .ongoru-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--secondary-color);
+        text-transform: uppercase;
+        margin-bottom: -5px; /* Rakamı yukarı yaklaştırır */
+    }
+    
+    .result-item-header .main-value .percentage {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-left: 0.75rem;
+    }
+    .status-good { color: var(--success-color); }
+    .status-bad { color: var(--danger-color); }
+    .deficit-info { text-align: right; font-size: 0.9rem; font-weight: 500; color: var(--danger-color); margin-top: -10px; margin-bottom: 10px; height: 1.2em; }
+    .bar-background { height: 12px; background-color: #eaf2ff; border-radius: 6px; position: relative; overflow: hidden; }
+    .bar-background::after { content: ''; position: absolute; left: 100%; top: 0; height: 100%; width: 2px; background-color: rgba(0, 123, 255, 0.3); }
+    .bar-fill { height: 100%; width: 0%; background-color: var(--primary-color); border-radius: 6px; transition: width 0.8s cubic-bezier(0.25, 0.1, 0.25, 1); }
+    .result-details { display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.9rem; color: var(--secondary-color); }
+    
+    /* YENİ: Net Gelir Toplamı Vurgusu */
+    .total-summary-item {
+        border-top: 2px solid #eaf2ff;
+        padding-top: 2rem;
+        margin-top: 2rem;
+    }
+    .total-summary-item .title {
+        font-size: 1.4rem; /* Daha büyük */
+        font-weight: 700;  /* Daha kalın */
+    }
+</style>
+
+<div id="net-gelir-ongoru-hesaplayici">
+    <h3>Net Gelir Öngörü Hesaplama</h3>
+
+    <form id="net-gelir-form" onsubmit="return false;">
+        <div class="form-container">
+            <div class="income-section">
+                <h4><i class="fa-solid fa-percent"></i> Faiz Geliri Bilgileri</h4>
+                <div class="form-group"><label for="faiz-gerceklesen">Ay Başından Bugüne Gerçekleşen (TL)</label><input type="text" id="faiz-gerceklesen" inputmode="numeric" placeholder="Gerçekleşen faiz gelirini girin" required></div>
+                <div class="form-group"><label for="faiz-butce">Aylık Bütçe (TL)</label><input type="text" id="faiz-butce" inputmode="numeric" placeholder="Bütçelenen faiz gelirini girin" required></div>
+                <div class="input-summary"><div class="mini-bar-container"><div class="mini-bar-fill" id="mini-bar-faiz"></div></div><span class="input-percentage" id="mini-perc-faiz">%0,00</span></div>
+            </div>
+            <div class="income-section">
+                <h4><i class="fa-solid fa-coins"></i> Faiz Dışı Gelir Bilgileri</h4>
+                <div class="form-group"><label for="fdg-gerceklesen">Ay Başından Bugüne Gerçekleşen (TL)</label><input type="text" id="fdg-gerceklesen" inputmode="numeric" placeholder="Gerçekleşen faiz dışı geliri girin" required></div>
+                <div class="form-group"><label for="fdg-butce">Aylık Bütçe (TL)</label><input type="text" id="fdg-butce" inputmode="numeric" placeholder="Bütçelenen faiz dışı geliri girin" required></div>
+                <div class="input-summary"><div class="mini-bar-container"><div class="mini-bar-fill" id="mini-bar-fdg"></div></div><span class="input-percentage" id="mini-perc-fdg">%0,00</span></div>
+            </div>
+        </div>
+        <div class="button-group" style="justify-content: center;"><button type="button" id="hesapla-btn" class="btn btn-primary"><i class="fa-solid fa-calculator"></i> Öngörüyü Hesapla</button></div>
+    </form>
+    
+    <div id="result-container-minimal" class="hidden" style="margin-top: 2.5rem;">
+        <div class="result-item">
+            <div class="result-item-header">
+                <div class="title">Faiz Geliri</div>
+                <!-- DEĞİŞİKLİK: Öngörü etiketi ve amount div'i eklendi -->
+                <div class="main-value">
+                    <div class="ongoru-label">Öngörü</div>
+                    <div id="min-res-faiz-amount">0,00 TL <span class="percentage" id="min-res-faiz-oran">%0,00</span></div>
+                </div>
+            </div>
+            <div class="deficit-info" id="deficit-faiz"></div>
+            <div class="bar-background"><div class="bar-fill" id="min-bar-faiz-result"></div></div>
+            <div class="result-details"><span id="min-det-faiz-gerceklesen">Gerçekleşen: 0,00 TL</span><span id="min-det-faiz-butce">Bütçe: 0,00 TL</span></div>
+        </div>
+        
+        <div class="result-item">
+            <div class="result-item-header">
+                <div class="title">Faiz Dışı Gelir</div>
+                <!-- DEĞİŞİKLİK: Öngörü etiketi ve amount div'i eklendi -->
+                <div class="main-value">
+                    <div class="ongoru-label">Öngörü</div>
+                    <div id="min-res-fdg-amount">0,00 TL <span class="percentage" id="min-res-fdg-oran">%0,00</span></div>
+                </div>
+            </div>
+            <div class="deficit-info" id="deficit-fdg"></div>
+            <div class="bar-background"><div class="bar-fill" id="min-bar-fdg-result"></div></div>
+            <div class="result-details"><span id="min-det-fdg-gerceklesen">Gerçekleşen: 0,00 TL</span><span id="min-det-fdg-butce">Bütçe: 0,00 TL</span></div>
+        </div>
+
+        <!-- DEĞİŞİKLİK: Vurgu için özel class eklendi -->
+        <div class="result-item total-summary-item">
+            <div class="result-item-header">
+                <div class="title">Net Gelir Toplamı</div>
+                 <!-- DEĞİŞİKLİK: Öngörü etiketi ve amount div'i eklendi -->
+                <div class="main-value">
+                    <div class="ongoru-label">Öngörü</div>
+                    <div id="min-res-net-amount">0,00 TL <span class="percentage" id="min-res-net-oran">%0,00</span></div>
+                </div>
+            </div>
+            <div class="deficit-info" id="deficit-net"></div>
+            <div class="bar-background"><div class="bar-fill" id="min-bar-net-result"></div></div>
+            <div class="result-details"><span id="min-det-net-gerceklesen">Gerçekleşen: 0,00 TL</span><span id="min-det-net-butce">Bütçe: 0,00 TL</span></div>
+        </div>
+
+        <p id="bilgi-metni" style="font-size: 0.9rem; color: var(--secondary-color); margin-top: 1.5rem; text-align:center;"></p>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const container = document.getElementById('net-gelir-ongoru-hesaplayici');
+        if (!container) return;
+
+        // --- DOM Elementleri ---
+        const hesaplaBtn = container.querySelector('#hesapla-btn');
+        const resultContainer = container.querySelector('#result-container-minimal');
+        const bilgiMetniP = container.querySelector('#bilgi-metni');
+        const inputs = {
+            faizGerceklesen: container.querySelector('#faiz-gerceklesen'),
+            faizButce: container.querySelector('#faiz-butce'),
+            fdgGerceklesen: container.querySelector('#fdg-gerceklesen'),
+            fdgButce: container.querySelector('#fdg-butce')
+        };
+        
+        // --- Yardımcı Fonksiyonlar ---
+        const formatCurrency = (value) => value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+        const formatPercentage = (value, sign = '%') => {
+            if (isNaN(value) || !isFinite(value)) return `${sign}0,00`;
+            return sign + (value * 100).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+        const parseFormattedNumber = (value) => parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
+        Object.values(inputs).forEach(input => {
+            if (input) input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                e.target.value = value ? new Intl.NumberFormat('tr-TR').format(value) : '';
+                if (e.target.id.includes('faiz')) updateInputSummary('faiz');
+                if (e.target.id.includes('fdg')) updateInputSummary('fdg');
+            });
+        });
+        
+        const updateInputSummary = (prefix) => {
+            const gerceklesen = parseFormattedNumber(inputs[`${prefix}Gerceklesen`].value) || 0;
+            const butce = parseFormattedNumber(inputs[`${prefix}Butce`].value) || 0;
+            const ratio = butce > 0 ? gerceklesen / butce : 0;
+            container.querySelector(`#mini-bar-${prefix}`).style.width = Math.min(ratio * 100, 100) + '%';
+            container.querySelector(`#mini-perc-${prefix}`).textContent = formatPercentage(ratio);
+        };
+        
+        const getMonthDayInfo = () => {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth();
+            const ayIsimleri = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+            const monthName = ayIsimleri[month];
+            const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+            const passedCalendarDays = today.getDate() - 1;
+            let totalBusinessDays = 0, passedBusinessDays = 0;
+            for (let d = 1; d <= totalDaysInMonth; d++) {
+                const dayOfWeek = new Date(year, month, d).getDay();
+                if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                    totalBusinessDays++;
+                    if (d < today.getDate()) passedBusinessDays++;
+                }
+            }
+            return { monthName, totalDaysInMonth, passedCalendarDays, totalBusinessDays, passedBusinessDays };
+        };
+        
+        // ** DEĞİŞTİRİLMİŞ UI GÜNCELLEME FONKSİYONU **
+        const updateMinimalResultUI = (prefix, data) => {
+            const amountEl = container.querySelector(`#min-res-${prefix}-amount`);
+            const percentageEl = container.querySelector(`#min-res-${prefix}-oran`);
+            const deficitEl = container.querySelector(`#deficit-${prefix}`);
+
+            amountEl.firstChild.textContent = `${formatCurrency(data.ongoru)} `; // Tutar
+            percentageEl.textContent = formatPercentage(data.oranOngoru); // Yüzde
+
+            percentageEl.classList.remove('status-good', 'status-bad');
+            if (data.oranOngoru >= 1) {
+                percentageEl.classList.add('status-good');
+                deficitEl.textContent = '';
+            } else {
+                percentageEl.classList.add('status-bad');
+                const deficit = data.butce - data.ongoru;
+                deficitEl.textContent = `Gelir Açığı: ${formatCurrency(deficit)}`;
+            }
+            
+            container.querySelector(`#min-det-${prefix}-gerceklesen`).textContent = `Gerçekleşen: ${formatCurrency(data.gerceklesen)}`;
+            container.querySelector(`#min-det-${prefix}-butce`).textContent = `Bütçe: ${formatCurrency(data.butce)}`;
+            
+            const barElement = container.querySelector(`#min-bar-${prefix}-result`);
+            barElement.style.width = Math.min((data.oranOngoru * 100), 150) + '%';
+        };
+
+        hesaplaBtn.addEventListener('click', () => {
+            const values = {
+                faizGerceklesen: parseFormattedNumber(inputs.faizGerceklesen.value),
+                faizButce: parseFormattedNumber(inputs.faizButce.value),
+                fdgGerceklesen: parseFormattedNumber(inputs.fdgGerceklesen.value),
+                fdgButce: parseFormattedNumber(inputs.fdgButce.value)
+            };
+            if (Object.values(values).some(isNaN)) { alert("Lütfen tüm alanlara geçerli sayılar giriniz."); return; }
+            
+            const dayInfo = getMonthDayInfo();
+            const ongoruFaiz = (dayInfo.passedCalendarDays > 0) ? (values.faizGerceklesen / dayInfo.passedCalendarDays) * dayInfo.totalDaysInMonth : values.faizGerceklesen;
+            const ongoruFdg = (dayInfo.passedBusinessDays > 0) ? (values.fdgGerceklesen / dayInfo.passedBusinessDays) * dayInfo.totalBusinessDays : values.fdgGerceklesen;
+            const netButce = values.faizButce + values.fdgButce;
+            const netGerceklesen = values.faizGerceklesen + values.fdgGerceklesen;
+            const netOngoru = ongoruFaiz + ongoruFdg;
+
+            const faizData = { butce: values.faizButce, gerceklesen: values.faizGerceklesen, ongoru: ongoruFaiz, oranOngoru: values.faizButce > 0 ? (ongoruFaiz / values.faizButce) : 0 };
+            const fdgData = { butce: values.fdgButce, gerceklesen: values.fdgGerceklesen, ongoru: ongoruFdg, oranOngoru: values.fdgButce > 0 ? (ongoruFdg / values.fdgButce) : 0 };
+            const netData = { butce: netButce, gerceklesen: netGerceklesen, ongoru: netOngoru, oranOngoru: netButce > 0 ? (netOngoru / netButce) : 0 };
+
+            updateMinimalResultUI('faiz', faizData);
+            updateMinimalResultUI('fdg', fdgData);
+            updateMinimalResultUI('net', netData);
+
+            bilgiMetniP.innerHTML = `<strong>${dayInfo.monthName}</strong> ayı için hesaplama, ayın toplam <strong>${dayInfo.totalDaysInMonth}</strong> takvim günü ve <strong>${dayInfo.totalBusinessDays}</strong> iş günü üzerinden yapılmıştır.`;
+            resultContainer.classList.remove('hidden');
+        });
+    })();
+</script>
+<!-- END OF FILE net_gelir_ongoru.html -->

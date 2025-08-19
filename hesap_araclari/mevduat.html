@@ -1,0 +1,219 @@
+<!-- START OF FILE mevduat.html -->
+
+<!-- Ana kapsayıcıyı değiştirerek fark alanını da içermesini sağlıyoruz -->
+<div id="mevduat-hesaplayici" class="d-flex flex-column align-items-center">
+
+    <div class="calculator-container w-100">
+        <!-- ANA HESAPLAMA SÜTUNU -->
+        <div class="calculator-column" id="mevduat-col-1">
+            <h3>Hesaplama Bilgileri</h3>
+            <form id="mevduat-form-1" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="tutar-1">Ana Para Tutarı (TL)</label>
+                    <input type="text" id="tutar-1" inputmode="numeric" placeholder="Örn: 1.000.000" required>
+                </div>
+                <div class="form-group">
+                    <label for="vade-1">Vade (Gün)</label>
+                    <input type="number" id="vade-1" placeholder="Örn: 32" required>
+                </div>
+                <div class="form-group">
+                    <label for="faiz-1">Yıllık Faiz Oranı (%)</label>
+                    <input type="text" id="faiz-1" inputmode="decimal" placeholder="Örn: 45,5" required>
+                </div>
+                <div class="button-group">
+                    <button type="button" id="hesapla-btn-1" class="btn btn-primary"><i class="fa-solid fa-calculator"></i> Hesapla</button>
+                    <button type="button" id="karsilastir-btn-1" class="btn btn-secondary" disabled><i class="fa-solid fa-code-compare"></i> Karşılaştır</button>
+                </div>
+            </form>
+            <table class="results-table" id="mevduat-sonuc-1">
+                <tbody>
+                    <tr>
+                        <td>Brüt Faiz Getirisi</td>
+                        <td data-result="brut-faiz">0,00 TL</td>
+                    </tr>
+                    <tr>
+                        <!-- GÜNCELLENDİ: Stopaj etiketi dinamik hale getirildi -->
+                        <td data-label="stopaj-label">Stopaj Kesintisi</td>
+                        <td data-result="stopaj">0,00 TL</td>
+                    </tr>
+                    <tr class="total-net">
+                        <td>Net Faiz Getirisi</td>
+                        <td data-result="net-faiz">0,00 TL</td>
+                    </tr>
+                    <tr class="vade-sonu-toplam">
+                        <td>Vade Sonu Toplam Tutar</td>
+                        <td data-result="toplam-tutar">0,00 TL</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- KARŞILAŞTIRMA SÜTUNU -->
+        <div class="calculator-column hidden" id="mevduat-col-2">
+            <h3>Karşılaştırma</h3>
+            <form id="mevduat-form-2" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="tutar-2">Ana Para Tutarı (TL)</label>
+                    <input type="text" id="tutar-2" inputmode="numeric" required>
+                </div>
+                <div class="form-group">
+                    <label for="vade-2">Vade (Gün)</label>
+                    <input type="number" id="vade-2" required>
+                </div>
+                <div class="form-group">
+                    <label for="faiz-2">Yeni Yıllık Faiz Oranı (%)</label>
+                    <input type="text" id="faiz-2" inputmode="decimal" placeholder="Yeni oranı girin" required>
+                </div>
+                <div class="button-group">
+                    <button type="button" id="hesapla-btn-2" class="btn btn-primary"><i class="fa-solid fa-calculator"></i> Hesapla</button>
+                </div>
+            </form>
+            <table class="results-table" id="mevduat-sonuc-2">
+                <tbody>
+                    <tr>
+                        <td>Brüt Faiz Getirisi</td>
+                        <td data-result="brut-faiz">0,00 TL</td>
+                    </tr>
+                    <tr>
+                        <!-- GÜNCELLENDİ: Stopaj etiketi dinamik hale getirildi -->
+                        <td data-label="stopaj-label">Stopaj Kesintisi</td>
+                        <td data-result="stopaj">0,00 TL</td>
+                    </tr>
+                    <tr class="total-net">
+                        <td>Net Faiz Getirisi</td>
+                        <td data-result="net-faiz">0,00 TL</td>
+                    </tr>
+                    <tr class="vade-sonu-toplam">
+                        <td>Vade Sonu Toplam Tutar</td>
+                        <td data-result="toplam-tutar">0,00 TL</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- FARK GÖSTERGE ALANI -->
+    <div id="mevduat-fark-container" class="hidden">
+        <span id="fark-metni"></span>
+    </div>
+
+</div>
+
+<script>
+    (() => {
+        const container = document.getElementById('mevduat-hesaplayici');
+        if (!container) return;
+        
+        const hesaplaBtn1 = container.querySelector('#hesapla-btn-1');
+        const karsilastirBtn1 = container.querySelector('#karsilastir-btn-1');
+        const sonucTablo1 = container.querySelector('#mevduat-sonuc-1');
+        const karsilastirmaSutunu = container.querySelector('#mevduat-col-2');
+        const hesaplaBtn2 = container.querySelector('#hesapla-btn-2');
+        const sonucTablo2 = container.querySelector('#mevduat-sonuc-2');
+        const farkContainer = container.querySelector('#mevduat-fark-container');
+        const farkMetni = container.querySelector('#fark-metni');
+
+        let ilkNetGetiri = 0;
+
+        // KALDIRILDI: const STOPAJ_ORANI = 0.15;
+        
+        const formatCurrency = (value) => value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+        const parseFloatComma = (value) => parseFloat(String(value).replace(',', '.'));
+        const parseFormattedNumber = (value) => parseFloat(String(value).replace(/\./g, ''));
+
+        const formatNumberInput = (input) => {
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                e.target.value = value ? new Intl.NumberFormat('tr-TR').format(value) : '';
+            });
+        };
+
+        formatNumberInput(container.querySelector('#tutar-1'));
+        formatNumberInput(container.querySelector('#tutar-2'));
+
+        // --- HESAPLAMA MANTIĞI GÜNCELLENDİ ---
+        const calculateMevduat = (tutar, vade, faiz) => {
+            if (!tutar || !vade || !faiz || isNaN(tutar) || isNaN(vade) || isNaN(faiz) || vade <= 0) {
+                return { brutFaiz: 0, stopaj: 0, netFaiz: 0, toplamTutar: tutar || 0, stopajOrani: 0 };
+            }
+
+            // GÜNCELLENDİ: Vadeye göre dinamik stopaj oranı belirleme
+            let stopajOrani;
+            if (vade >= 1 && vade <= 180) {
+                stopajOrani = 0.175; // %17,5
+            } else if (vade >= 181 && vade <= 364) {
+                stopajOrani = 0.15;  // %15
+            } else if (vade >= 365) {
+                stopajOrani = 0.10;  // %10
+            } else {
+                stopajOrani = 0; // Geçersiz vade için (0 veya negatif)
+            }
+
+            const brutFaiz = (tutar * faiz / 100 / 365) * vade;
+            const stopaj = brutFaiz * stopajOrani; // Dinamik oran kullanılıyor
+            const netFaiz = brutFaiz - stopaj;
+            const toplamTutar = tutar + netFaiz;
+            return { brutFaiz, stopaj, netFaiz, toplamTutar, stopajOrani }; // Hesaplanan oran da döndürülüyor
+        };
+
+        // --- SONUÇ GÜNCELLEME FONKSİYONU GÜNCELLENDİ ---
+        const updateResults = (tableElement, results) => {
+            // GÜNCELLENDİ: Stopaj etiketi, hesaplanan orana göre güncelleniyor
+            const stopajLabel = tableElement.querySelector('[data-label="stopaj-label"]');
+            const stopajYuzde = (results.stopajOrani * 100).toLocaleString('tr-TR');
+            stopajLabel.textContent = `Stopaj Kesintisi (%${stopajYuzde})`;
+
+            tableElement.querySelector('[data-result="brut-faiz"]').textContent = formatCurrency(results.brutFaiz);
+            tableElement.querySelector('[data-result="stopaj"]').textContent = formatCurrency(results.stopaj);
+            tableElement.querySelector('[data-result="net-faiz"]').textContent = formatCurrency(results.netFaiz);
+            tableElement.querySelector('[data-result="toplam-tutar"]').textContent = formatCurrency(results.toplamTutar);
+        };
+
+        // --- OLAY DİNLEYİCİLER (Değişiklik gerekmiyor) ---
+        hesaplaBtn1.addEventListener('click', () => {
+            const tutar = parseFormattedNumber(container.querySelector('#tutar-1').value);
+            const vade = parseInt(container.querySelector('#vade-1').value);
+            const faiz = parseFloatComma(container.querySelector('#faiz-1').value);
+            const results = calculateMevduat(tutar, vade, faiz);
+            updateResults(sonucTablo1, results);
+            ilkNetGetiri = results.netFaiz;
+            if (tutar > 0) karsilastirBtn1.disabled = false;
+            farkContainer.classList.add('hidden');
+        });
+
+        karsilastirBtn1.addEventListener('click', () => {
+            karsilastirmaSutunu.classList.remove('hidden');
+            container.querySelector('#tutar-2').value = container.querySelector('#tutar-1').value;
+            container.querySelector('#vade-2').value = container.querySelector('#vade-1').value;
+            const faizInput2 = container.querySelector('#faiz-2');
+            faizInput2.value = '';
+            faizInput2.focus();
+        });
+
+        hesaplaBtn2.addEventListener('click', () => {
+            const tutar = parseFormattedNumber(container.querySelector('#tutar-2').value);
+            const vade = parseInt(container.querySelector('#vade-2').value);
+            const faiz = parseFloatComma(container.querySelector('#faiz-2').value);
+            const results = calculateMevduat(tutar, vade, faiz);
+            updateResults(sonucTablo2, results);
+            
+            const ikinciNetGetiri = results.netFaiz;
+            const fark = ikinciNetGetiri - ilkNetGetiri;
+            
+            farkContainer.className = 'hidden';
+            
+            if (fark > 0) {
+                farkMetni.textContent = `İkinci seçenek ${formatCurrency(fark)} daha kazançlı.`;
+                farkContainer.classList.add('fark-pozitif');
+            } else if (fark < 0) {
+                farkMetni.textContent = `İlk seçenek ${formatCurrency(Math.abs(fark))} daha kazançlı.`;
+                farkContainer.classList.add('fark-negatif');
+            } else {
+                farkMetni.textContent = 'İki seçeneğin net getirisi arasında fark yoktur.';
+                farkContainer.classList.add('fark-notr');
+            }
+            farkContainer.classList.remove('hidden');
+        });
+    })();
+</script>
+<!-- END OF FILE mevduat.html -->

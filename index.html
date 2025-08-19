@@ -1,0 +1,119 @@
+<!-- START OF FILE index.html -->
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hesaplama Tabloları</title>
+
+    <!-- Uygulamanın genel görünümünü sağlayan stil dosyamız -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Modern bir yazı tipi olan 'Poppins'i Google Fonts üzerinden yüklüyoruz -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- İkonlar için Font Awesome kütüphanesini dahil ediyoruz -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+
+    <!-- Sayfanın başlık alanı -->
+    <header>
+        <h1>Hesaplama Tabloları</h1>
+        <!-- Bir hesaplama aracına girildiğinde görünür hale gelecek olan "Ana Menüye Dön" butonu -->
+        <button id="back-to-menu" class="btn btn-secondary hidden">
+            <i class="fa-solid fa-arrow-left"></i> Ana Menüye Dön
+        </button>
+    </header>
+
+    <!-- Sayfanın ana içerik alanı -->
+    <main>
+        <!-- Araç Seçim Ekranı: Artık iki satırdan oluşuyor -->
+        <div id="selection-screen">
+            
+            <!-- ÜST SIRA -->
+            <div class="tool-row" id="top-row">
+                <div class="tool-card" data-tool="mevduat">
+                    <i class="fa-solid fa-piggy-bank fa-3x"></i>
+                    <h2>Mevduat Faizi Hesaplama</h2>
+                    <p>Vadeli mevduatlarınızın net getirisini hesaplayın.</p>
+                </div>
+                <div class="tool-card" data-tool="kredi">
+                    <i class="fa-solid fa-landmark fa-3x"></i>
+                    <h2>Kredi Hesaplama</h2>
+                    <p>Ticari, Rotatif ve Bireysel kredilerinizin taksit ve toplam maliyetini hesaplayın.</p>
+                </div>
+                <div class="tool-card" data-tool="esnek_hesap">
+                    <i class="fa-solid fa-wallet fa-3x"></i>
+                    <h2>Esnek Hesap Faiz Hesaplama</h2>
+                    <p>Esnek hesap (KMH) kullanımınızın faiz maliyetini hesaplayın.</p>
+                </div>
+                 <div class="tool-card" data-tool="cek_iskonto">
+                    <i class="fa-solid fa-receipt fa-3x"></i>
+                    <h2>Çek İskonto Hesaplama</h2>
+                    <p>Çeklerinizin iskonto sonrası net tutarını toplu olarak hesaplayın.</p>
+                </div>
+            </div>
+
+            <!-- ALT SIRA -->
+             <div class="tool-row" id="bottom-row">
+                <div class="tool-card" data-tool="ceyrek_ortalama">
+                    <i class="fa-solid fa-chart-pie fa-3x"></i>
+                    <h2>Çeyreklik Ortalama Hesaplama</h2>
+                    <p>Çeyreklik bütçe hedefinize ulaşmak için gereken tutarı hesaplayın.</p>
+                </div>
+                <div class="tool-card" data-tool="ortalama_vade">
+                    <i class="fa-solid fa-calendar-check fa-3x"></i>
+                    <h2>Aylık Ortalama Hesaplama</h2>
+                    <p>Aylık bütçe hedefinize ulaşmak için gereken günlük tutarı bulun.</p>
+                </div>
+                <div class="tool-card" data-tool="stok_faiz">
+                    <i class="fa-solid fa-layer-group fa-3x"></i>
+                    <h2>Kredi Stok Faiz Hesaplama</h2>
+                    <p>Mevcut kredi portföyünüzün ortalama faizini yeni işlemlerle simüle edin.</p>
+                </div>
+                <div class="tool-card" data-tool="npl_hesaplama">
+                    <i class="fa-solid fa-balance-scale fa-3x"></i>
+                    <h2>NPL Hesaplama</h2>
+                    <p>Hedef NPL rasyonuz için gereken kredi miktarını bulun.</p>
+                </div>
+                 <div class="tool-card" data-tool="gelisim_hesaplama">
+                    <i class="fa-solid fa-arrow-trend-up fa-3x"></i>
+                    <h2>Gelişim Hesaplama</h2>
+                    <p>Sene başı değerine göre yıllık gelişimi yüzde olarak hesaplayın.</p>
+                </div>
+                <div class="tool-card" data-tool="vadesiz_gelir">
+                    <i class="fa-solid fa-hand-holding-dollar fa-3x"></i>
+                    <h2>Vadesiz Gelir Etkisi Hesaplama</h2>
+                    <p>Vadesiz mevduatın ITR üzerinden gelir etkisini hesaplayın.</p>
+                </div>
+                <!-- DEĞİŞİKLİK: Yeni hesaplama aracı kartı buraya eklendi -->
+                <div class="tool-card" data-tool="net_gelir_ongoru">
+                    <i class="fa-solid fa-file-invoice-dollar fa-3x"></i>
+                    <h2>Net Gelir Öngörü</h2>
+                    <p>Aylık faiz ve faiz dışı gelir öngörülerini hesaplayın.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Hesaplama Araçlarının Yükleneceği Alan: Bu div başlangıçta boştur -->
+        <div id="content-area">
+            <!-- Seçilen aracın HTML içeriği, script.js tarafından buraya dinamik olarak yüklenecektir -->
+        </div>
+    </main>
+
+    <!-- Sayfanın alt bilgi (footer) alanı -->
+    <footer>
+        <p>Created by Murat Özgür Ünal</p>
+    </footer>
+
+    <!-- Uygulamanın dinamik çalışmasını sağlayan ana JavaScript dosyasını, sayfanın en sonuna ekliyoruz -->
+    <script src="script.js"></script>
+
+</body>
+</html>
+<!-- END OF FILE index.html -->

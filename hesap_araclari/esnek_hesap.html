@@ -1,0 +1,109 @@
+<!-- START OF FILE esnek_hesap.html -->
+
+<div id="esnek-hesap-hesaplayici" class="calculator-container" style="justify-content: center;">
+    <div class="calculator-column" style="flex: 0 1 600px;">
+        <h3>Hesaplama Bilgileri</h3>
+        <form id="esnek-hesap-form" onsubmit="return false;">
+            <div class="form-group">
+                <label for="tutar">Kullanılan Tutar (TL)</label>
+                <input type="text" id="tutar" inputmode="numeric" placeholder="Örn: 10.000" required>
+            </div>
+            <div class="form-group">
+                <label for="vade">Kullanılan Gün Sayısı</label>
+                <input type="number" id="vade" placeholder="Örn: 15" required>
+            </div>
+            <div class="form-group">
+                <label for="faiz">Aylık Faiz Oranı (%)</label>
+                <input type="text" id="faiz" inputmode="decimal" placeholder="Örn: 5,00" required>
+            </div>
+            <div class="button-group" style="justify-content: center;">
+                <button type="button" id="hesapla-btn" class="btn btn-primary"><i class="fa-solid fa-calculator"></i> Hesapla</button>
+            </div>
+        </form>
+        
+        <!-- Sonuç Alanı -->
+        <div id="result-container" class="hidden" style="margin-top: 2rem;">
+            <table class="results-table">
+                <tbody>
+                    <tr>
+                        <td>Hesaplanan Brüt Faiz</td>
+                        <td data-result="brut-faiz">0,00 TL</td>
+                    </tr>
+                    <tr>
+                        <td>Toplam Vergi (BSMV + KKDF)</td>
+                        <td data-result="toplam-vergi">0,00 TL</td>
+                    </tr>
+                    <tr class="total-net" style="color: var(--danger-color);">
+                        <td>Toplam Faiz Maliyeti</td>
+                        <td data-result="toplam-maliyet">0,00 TL</td>
+                    </tr>
+                    <tr class="vade-sonu-toplam">
+                        <td>Toplam Geri Ödenecek Tutar</td>
+                        <td data-result="toplam-odeme">0,00 TL</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const container = document.getElementById('esnek-hesap-hesaplayici');
+        if (!container) return;
+
+        // Sabitler
+        const BSMV_ORANI = 0.15;
+        const KKDF_ORANI = 0.15;
+
+        // DOM Elementleri
+        const hesaplaBtn = container.querySelector('#hesapla-btn');
+        const tutarInput = container.querySelector('#tutar');
+        const vadeInput = container.querySelector('#vade');
+        const faizInput = container.querySelector('#faiz');
+        const resultContainer = container.querySelector('#result-container');
+
+        // Yardımcı Fonksiyonlar
+        const formatCurrency = (value) => value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+        const parseFormattedNumber = (value) => parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
+        const parseFloatComma = (value) => parseFloat(String(value).replace(',', '.'));
+        const formatNumberInput = (input) => {
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                e.target.value = value ? new Intl.NumberFormat('tr-TR').format(value) : '';
+            });
+        };
+
+        // Girdi alanlarına otomatik sayı formatlamayı uygula
+        formatNumberInput(tutarInput);
+
+        hesaplaBtn.addEventListener('click', () => {
+            const tutar = parseFormattedNumber(tutarInput.value);
+            const vade = parseInt(vadeInput.value);
+            const aylikFaizOrani = parseFloatComma(faizInput.value);
+
+            if (isNaN(tutar) || isNaN(vade) || isNaN(aylikFaizOrani)) {
+                alert("Lütfen tüm alanlara geçerli sayılar giriniz.");
+                return;
+            }
+
+            // --- Hesaplama ---
+            // Aylık faiz oranını günlüğe çeviriyoruz (Genellikle 30 güne bölünür)
+            const gunlukFaiz = (aylikFaizOrani / 100) / 30;
+            
+            const brutFaiz = tutar * gunlukFaiz * vade;
+            const toplamVergi = brutFaiz * (BSMV_ORANI + KKDF_ORANI);
+            const toplamMaliyet = brutFaiz + toplamVergi;
+            const toplamOdeme = tutar + toplamMaliyet;
+            
+            // Sonuçları ekrana yazdır
+            resultContainer.querySelector('[data-result="brut-faiz"]').textContent = formatCurrency(brutFaiz);
+            resultContainer.querySelector('[data-result="toplam-vergi"]').textContent = formatCurrency(toplamVergi);
+            resultContainer.querySelector('[data-result="toplam-maliyet"]').textContent = formatCurrency(toplamMaliyet);
+            resultContainer.querySelector('[data-result="toplam-odeme"]').textContent = formatCurrency(toplamOdeme);
+
+            resultContainer.classList.remove('hidden');
+        });
+    })();
+</script>
+<!-- END OF FILE esnek_hesap.html -->

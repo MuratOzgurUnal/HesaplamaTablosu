@@ -1,0 +1,204 @@
+<!-- Bu araca özel, daha kompakt stiller -->
+<style>
+    .calculator-section {
+        margin-bottom: 1.5rem; /* Bölümler arası boşluk azaltıldı */
+        border: 1px solid #ddd;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+    }
+    .section-header {
+        padding: 0.6rem 1.2rem; /* Başlık alanı inceltildi */
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: white;
+        background-color: #1a3e6e; /* Koyu Mavi */
+    }
+    .section-header-light {
+        background-color: #dbe5f1;
+        color: var(--text-color);
+        font-weight: 500;
+        border-bottom: 1px solid #ddd;
+    }
+    .section-header-danger {
+        background-color: #ff0000;
+    }
+    .calculator-body {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem; /* Kutular arası boşluk azaltıldı */
+        padding: 1.2rem; /* İç boşluk azaltıldı */
+    }
+    .input-group-box, .result-box {
+        flex: 1;
+        min-width: 250px;
+        border-radius: var(--border-radius);
+        padding: 0.8rem; /* Kutu içi boşluk azaltıldı */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .input-group-box {
+        border: 1px solid #b4c6e7;
+        background-color: #fcfdff;
+    }
+    /* GÜNCELLENDİ: Sonuç kutusu artık kırmızı değil, koyu mavi */
+    .result-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: white;
+        background-color: #1a3e6e; /* Koyu Mavi */
+        border: 2px solid #1a3e6e;
+    }
+    .box-title {
+        font-weight: 600;
+        margin-bottom: 0.8rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #ddd;
+        text-align: center;
+        color: #1a3e6e;
+    }
+    .result-box .box-title {
+        color: white;
+        border-bottom: 1px solid rgba(255,255,255,0.5);
+    }
+    .result-value {
+        font-size: 1.75rem; /* Sonuç font boyutu biraz küçültüldü */
+        font-weight: 700;
+    }
+</style>
+
+<div id="stok-faiz-hesaplayici">
+
+    <!-- BÖLÜM A: KREDİ KULLANDIRIM -->
+    <div class="calculator-section">
+        <div class="section-header section-header-light">Kredi Kullandırım</div>
+        <div class="calculator-body">
+            <div class="input-group-box">
+                <div class="box-title">Mevcut Durum</div>
+                <div class="form-group"><label for="kull-mevcut-kredi">TL Kredi</label><input type="text" id="kull-mevcut-kredi" inputmode="numeric"></div>
+                <div class="form-group"><label for="kull-mevcut-faiz">Stok Faiz (%)</label><input type="text" id="kull-mevcut-faiz" inputmode="decimal"></div>
+            </div>
+            <div class="input-group-box">
+                <div class="box-title">Kredi Kullandırım</div>
+                <div class="form-group"><label for="kull-yeni-kredi">Kullandırılacak Kredi</label><input type="text" id="kull-yeni-kredi" inputmode="numeric"></div>
+                <div class="form-group"><label for="kull-yeni-faiz">Faiz Oranı (%)</label><input type="text" id="kull-yeni-faiz" inputmode="decimal"></div>
+            </div>
+            <div class="result-box">
+                <div class="box-title">Kullandırım Sonrası Stok Faiz</div>
+                <p id="kull-sonuc-faiz" class="result-value">0,00%</p>
+            </div>
+        </div>
+        <div class="button-group" style="padding: 0 1.2rem 1.2rem; justify-content: flex-end;">
+            <button id="hesapla-kullandirim" class="btn btn-primary">Hesapla</button>
+        </div>
+    </div>
+
+    <!-- BÖLÜM B: KREDİ KAPAMA -->
+    <div class="calculator-section">
+        <div class="section-header section-header-danger">Kredi Kapama</div>
+        <div class="calculator-body">
+            <div class="input-group-box">
+                <div class="box-title">Mevcut Durum</div>
+                <div class="form-group"><label for="kap-mevcut-kredi">TL Kredi</label><input type="text" id="kap-mevcut-kredi" inputmode="numeric"></div>
+                <div class="form-group"><label for="kap-mevcut-faiz">Stok Faiz (%)</label><input type="text" id="kap-mevcut-faiz" inputmode="decimal"></div>
+            </div>
+            <div class="input-group-box">
+                <div class="box-title">Kredi Kapama</div>
+                <div class="form-group"><label for="kap-kapanacak-kredi">Kapatılacak Kredi</label><input type="text" id="kap-kapanacak-kredi" inputmode="numeric"></div>
+                <div class="form-group"><label for="kap-kapama-faiz">Faiz Oranı (%)</label><input type="text" id="kap-kapama-faiz" inputmode="decimal"></div>
+            </div>
+            <div class="result-box">
+                <div class="box-title">Kapatma Sonrası Stok Faiz</div>
+                <p id="kap-sonuc-faiz" class="result-value">0,00%</p>
+            </div>
+        </div>
+        <div class="button-group" style="padding: 0 1.2rem 1.2rem; justify-content: flex-end;">
+            <button id="hesapla-kapama" class="btn btn-primary">Hesapla</button>
+        </div>
+    </div>
+
+    <!-- BÖLÜM C: İSTENİLEN STOK FAİZ -->
+    <div class="calculator-section">
+        <div class="section-header">Faiz Güncelleme</div>
+        <div class="calculator-body">
+            <div class="input-group-box">
+                <div class="box-title">Mevcut Durum</div>
+                <div class="form-group"><label for="gunc-mevcut-kredi">TL Kredi</label><input type="text" id="gunc-mevcut-kredi" inputmode="numeric"></div>
+                <div class="form-group"><label for="gunc-mevcut-faiz">Stok Faiz (%)</label><input type="text" id="gunc-mevcut-faiz" inputmode="decimal"></div>
+            </div>
+            <div class="input-group-box">
+                <div class="box-title">Kredi Kullandırım</div>
+                <div class="form-group"><label>Kullandırılması gereken kredi tutarı</label><p id="gunc-sonuc-kredi" style="font-size: 1.5rem; font-weight: 600; text-align: center; margin-top: 0.8rem;">0,00 TL</p></div>
+                <div class="form-group"><label for="gunc-yeni-faiz">Faiz Oranı (%)</label><input type="text" id="gunc-yeni-faiz" inputmode="decimal"></div>
+            </div>
+            <div class="result-box" style="background-color: white; border: 2px solid #c00000;">
+                 <div class="box-title" style="color: #c00000;">İstenilen Stok Faiz</div>
+                 <div class="form-group" style="width: 100%;"><input type="text" id="gunc-istenen-faiz" inputmode="decimal" style="text-align:center; font-size: 1.75rem; font-weight: 700; color: #c00000; background: transparent; border: none; padding: 0;"></div>
+            </div>
+        </div>
+        <div class="button-group" style="padding: 0 1.2rem 1.2rem; justify-content: flex-end;">
+            <button id="hesapla-guncelleme" class="btn btn-primary">Hesapla</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// JavaScript kodu (hesaplama mantığı) değiştirilmedi.
+(() => {
+    const container = document.getElementById('stok-faiz-hesaplayici');
+    if (!container) return;
+
+    // --- Helper Functions ---
+    const formatCurrency = (value) => {
+        if (isNaN(value)) return "0,00 TL";
+        return value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+    };
+    const formatPercentage = (value) => {
+        if (isNaN(value)) return "0,00%";
+        return value.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+    };
+    const parseFormattedNumber = (value) => parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
+    const parseFloatComma = (value) => parseFloat(String(value).replace(',', '.'));
+    const formatNumberInput = (input) => {
+        if (!input) return;
+        input.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = value ? new Intl.NumberFormat('tr-TR').format(value) : '';
+        });
+    };
+
+    // --- DOM Selections ---
+    const kullMevcutKredi = container.querySelector('#kull-mevcut-kredi'), kullMevcutFaiz = container.querySelector('#kull-mevcut-faiz'), kullYeniKredi = container.querySelector('#kull-yeni-kredi'), kullYeniFaiz = container.querySelector('#kull-yeni-faiz'), kullSonucFaiz = container.querySelector('#kull-sonuc-faiz'), hesaplaKullandirimBtn = container.querySelector('#hesapla-kullandirim');
+    const kapMevcutKredi = container.querySelector('#kap-mevcut-kredi'), kapMevcutFaiz = container.querySelector('#kap-mevcut-faiz'), kapKapanacakKredi = container.querySelector('#kap-kapanacak-kredi'), kapKapamaFaiz = container.querySelector('#kap-kapama-faiz'), kapSonucFaiz = container.querySelector('#kap-sonuc-faiz'), hesaplaKapamaBtn = container.querySelector('#hesapla-kapama');
+    const guncMevcutKredi = container.querySelector('#gunc-mevcut-kredi'), guncMevcutFaiz = container.querySelector('#gunc-mevcut-faiz'), guncYeniFaiz = container.querySelector('#gunc-yeni-faiz'), guncIstenenFaiz = container.querySelector('#gunc-istenen-faiz'), guncSonucKredi = container.querySelector('#gunc-sonuc-kredi'), hesaplaGuncellemeBtn = container.querySelector('#hesapla-guncelleme');
+
+    [kullMevcutKredi, kullYeniKredi, kapMevcutKredi, kapKapanacakKredi, guncMevcutKredi].forEach(formatNumberInput);
+
+    // --- Event Listeners ---
+    hesaplaKullandirimBtn.addEventListener('click', () => {
+        const p0 = parseFormattedNumber(kullMevcutKredi.value), r0 = parseFloatComma(kullMevcutFaiz.value), x = parseFormattedNumber(kullYeniKredi.value), r1 = parseFloatComma(kullYeniFaiz.value);
+        if ([p0, r0, x, r1].some(isNaN)) { alert('Lütfen tüm alanları geçerli sayılarla doldurun.'); return; }
+        const toplamKredi = p0 + x;
+        if (toplamKredi === 0) { alert('Toplam kredi sıfır olamaz.'); kullSonucFaiz.textContent = formatPercentage(0); return; }
+        const mevcutOrtalama = p0 * (r0 / 100), yeniOrtalama = x * (r1 / 100), toplamOrtalama = mevcutOrtalama + yeniOrtalama;
+        kullSonucFaiz.textContent = formatPercentage((toplamOrtalama / toplamKredi) * 100);
+    });
+    hesaplaKapamaBtn.addEventListener('click', () => {
+        const p0 = parseFormattedNumber(kapMevcutKredi.value), r0 = parseFloatComma(kapMevcutFaiz.value), y = parseFormattedNumber(kapKapanacakKredi.value), r2 = parseFloatComma(kapKapamaFaiz.value);
+        if ([p0, r0, y, r2].some(isNaN)) { alert('Lütfen tüm alanları geçerli sayılarla doldurun.'); return; }
+        const kalanKredi = p0 - y;
+        if (kalanKredi <= 0) { alert('Kapatılan kredi, mevcut krediden büyük veya eşit olamaz.'); kapSonucFaiz.textContent = formatPercentage(0); return; }
+        const mevcutOrtalama = p0 * (r0 / 100), kapamaOrtalama = y * (r2 / 100), kalanToplamOrtalama = mevcutOrtalama - kapamaOrtalama;
+        kapSonucFaiz.textContent = formatPercentage((kalanToplamOrtalama / kalanKredi) * 100);
+    });
+    hesaplaGuncellemeBtn.addEventListener('click', () => {
+        const p0 = parseFormattedNumber(guncMevcutKredi.value), r0 = parseFloatComma(guncMevcutFaiz.value), r1 = parseFloatComma(guncYeniFaiz.value), rd = parseFloatComma(guncIstenenFaiz.value);
+        if ([p0, r0, r1, rd].some(isNaN)) { alert('Lütfen tüm alanları geçerli sayılarla doldurun.'); return; }
+        const payda = (r1 / 100) - (rd / 100);
+        if (payda === 0) { alert('Yeni kredi faiz oranı, istenen stok faiz oranı ile aynı olamaz. Bu durumda hesaplama yapılamaz.'); guncSonucKredi.textContent = 'Hesaplanamaz'; return; }
+        const pay = p0 * ((rd / 100) - (r0 / 100));
+        guncSonucKredi.textContent = formatCurrency(pay / payda);
+    });
+})();
+</script>

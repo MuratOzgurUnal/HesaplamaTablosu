@@ -1,0 +1,187 @@
+<!-- START OF FILE ceyrek_ortalama.html -->
+
+<div id="ceyrek-ortalama-hesaplayici" class="calculator-container" style="justify-content: center;">
+    <div class="calculator-column" style="flex: 0 1 600px;">
+        <h3>Hesaplama Bilgileri</h3>
+        <form id="ceyrek-ortalama-form" onsubmit="return false;">
+            
+            <!-- Dinamik olarak doldurulacak aylık ortalama alanları -->
+            <div id="monthly-averages-container">
+                <!-- JS bu alanı dolduracak -->
+            </div>
+
+            <div class="form-group">
+                <label for="nokta-bakiye">Nokta Bakiye (TL)</label>
+                <!-- YENİ: Placeholder metni değiştirildi -->
+                <input type="text" id="nokta-bakiye" inputmode="numeric" placeholder="Mevcut nokta bakiyeyi girin" required>
+            </div>
+           
+            <div class="form-group">
+                <!-- YENİ: Etiket ve placeholder metni değiştirildi -->
+                <label for="butce">Çeyrek Bütçesi (TL)</label>
+                <input type="text" id="butce" inputmode="numeric" placeholder="Hedeflenen çeyrek bütçesini girin" required>
+            </div>
+
+            <div class="button-group" style="justify-content: center;">
+                <button type="button" id="hesapla-btn" class="btn btn-primary"><i class="fa-solid fa-calculator"></i> Hesapla</button>
+            </div>
+        </form>
+        
+        <!-- Sonuç Alanı -->
+        <div id="result-container" class="hidden" style="margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--light-gray); border-radius: var(--border-radius); text-align: center; background-color: #f8f9fa;">
+            <p style="margin: 0; font-size: 1.1rem; color: var(--secondary-color);">Hedefe ulaşmak için çeyreğin kalanında tutulması gereken ortalama bakiye:</p>
+            <p id="sonuc-tutari" style="font-size: 2rem; font-weight: 700; color: var(--primary-color); margin-top: 0.5rem;">0,00 TL</p>
+             <p style="font-size: 1.1rem; color: var(--secondary-color); margin-top: 1rem;">Bu tutar, mevcut nokta bakiyenizden ne kadar fazla?</p>
+            <p id="fark-tutari" style="font-size: 1.5rem; font-weight: 600; color: var(--success-color); margin-top: 0.2rem;">0,00 TL</p>
+            <p id="bilgi-metni" style="font-size: 0.9rem; color: var(--secondary-color); margin-top: 1rem; border-top: 1px solid var(--light-gray); padding-top: 1rem;"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const container = document.getElementById('ceyrek-ortalama-hesaplayici');
+        if (!container) return;
+
+        // --- DOM Elementleri ---
+        const formContainer = container.querySelector('#monthly-averages-container');
+        const noktaBakiyeInput = container.querySelector('#nokta-bakiye');
+        const butceInput = container.querySelector('#butce');
+        const hesaplaBtn = container.querySelector('#hesapla-btn');
+        const resultContainer = container.querySelector('#result-container');
+        const sonucTutariP = container.querySelector('#sonuc-tutari');
+        const farkTutariP = container.querySelector('#fark-tutari');
+        const bilgiMetniP = container.querySelector('#bilgi-metni');
+
+        // --- Yardımcı Fonksiyonlar ---
+        const formatCurrency = (value) => value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+        const parseFormattedNumber = (value) => parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
+        const formatNumberInput = (input) => {
+            if (!input) return;
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                e.target.value = value ? new Intl.NumberFormat('tr-TR').format(value) : '';
+            });
+        };
+        const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+
+        // --- Tarih ve Form Oluşturma ---
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth(); // 0-11
+        const currentDay = today.getDate();
+        
+        const ayIsimleri = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+        const quarterIndex = Math.floor(currentMonth / 3);
+        const monthInQuarter = currentMonth % 3; // Çeyrek içindeki ay (0, 1, veya 2)
+
+        // YENİ: Minimalist mavi tonlarında renk paleti
+        const monthColors = ['#f0f5fa', '#e6f0f7', '#ddeaf5'];
+
+        const quarterMonths = [];
+        for (let i = 0; i < 3; i++) {
+            quarterMonths.push({
+                index: quarterIndex * 3 + i,
+                name: ayIsimleri[quarterIndex * 3 + i],
+                days: getDaysInMonth(currentYear, quarterIndex * 3 + i)
+            });
+        }
+        
+        // Formu dinamik olarak oluştur
+        let formHTML = '';
+        for (let i = 0; i <= monthInQuarter; i++) {
+            // YENİ: Arka plan rengini paletten al
+            const bgColor = monthColors[i % monthColors.length]; 
+            formHTML += `
+                <div class="form-group">
+                    <label for="aylik-ortalama-${i}">${quarterMonths[i].name} Aylık Ortalama Gerçekleşen (TL)</label>
+                    <input 
+                        type="text" 
+                        id="aylik-ortalama-${i}" 
+                        inputmode="numeric" 
+                        placeholder="Gerçekleşen ortalamayı girin" 
+                        required 
+                        style="background-color: ${bgColor}; border-color: #cddbe8;"
+                    >
+                </div>
+            `;
+        }
+        formContainer.innerHTML = formHTML;
+
+        // Yeni oluşturulan inputlara ve mevcut inputlara formatlamayı uygula
+        for (let i = 0; i <= monthInQuarter; i++) {
+            formatNumberInput(container.querySelector(`#aylik-ortalama-${i}`));
+        }
+        formatNumberInput(noktaBakiyeInput);
+        formatNumberInput(butceInput);
+
+        // --- Hesaplama Olayı (Mantık Değişmedi) ---
+        hesaplaBtn.addEventListener('click', () => {
+            const noktaBakiye = parseFormattedNumber(noktaBakiyeInput.value);
+            const butce = parseFormattedNumber(butceInput.value);
+            
+            const monthlyAverages = [];
+            let allInputsValid = true;
+            for (let i = 0; i <= monthInQuarter; i++) {
+                const avgValue = parseFormattedNumber(container.querySelector(`#aylik-ortalama-${i}`).value);
+                if(isNaN(avgValue)) allInputsValid = false;
+                monthlyAverages.push(avgValue);
+            }
+
+            if (isNaN(noktaBakiye) || isNaN(butce) || !allInputsValid) {
+                alert("Lütfen tüm alanlara geçerli sayılar giriniz.");
+                return;
+            }
+
+            // --- HESAPLAMA MANTIĞI ---
+
+            const totalDaysInQuarter = quarterMonths.reduce((sum, month) => sum + month.days, 0);
+            const targetTotalBalance = butce * totalDaysInQuarter;
+
+            let realizedTotalBalance = 0;
+            let passedDaysInQuarter = 0;
+
+            for (let i = 0; i < monthInQuarter; i++) {
+                realizedTotalBalance += monthlyAverages[i] * quarterMonths[i].days;
+                passedDaysInQuarter += quarterMonths[i].days;
+            }
+            
+            const passedDaysInCurrentMonth = currentDay - 1;
+            realizedTotalBalance += monthlyAverages[monthInQuarter] * passedDaysInCurrentMonth;
+            passedDaysInQuarter += passedDaysInCurrentMonth;
+
+            const remainingDaysInQuarter = totalDaysInQuarter - passedDaysInQuarter;
+
+            if (remainingDaysInQuarter <= 0) {
+                sonucTutariP.textContent = "Hesaplama Yapılamaz";
+                farkTutariP.textContent = "-";
+                bilgiMetniP.textContent = "Mevcut çeyrek sona ermiştir veya bugün çeyreğin son günüdür.";
+                resultContainer.classList.remove('hidden');
+                return;
+            }
+
+            const neededTotalBalanceForRemainder = targetTotalBalance - realizedTotalBalance;
+            const requiredAverageForRemainder = neededTotalBalanceForRemainder / remainingDaysInQuarter;
+            const fark = requiredAverageForRemainder - noktaBakiye;
+            
+            sonucTutariP.textContent = formatCurrency(requiredAverageForRemainder);
+            farkTutariP.textContent = formatCurrency(fark);
+            
+            if (fark > 0) {
+                farkTutariP.style.color = 'var(--success-color)';
+            } else {
+                 farkTutariP.style.color = 'var(--danger-color)';
+            }
+
+            bilgiMetniP.innerHTML = `
+                Mevcut Çeyrek: <strong>${quarterIndex + 1}. Çeyrek</strong> <br>
+                Çeyrekteki Toplam Gün: <strong>${totalDaysInQuarter}</strong> | 
+                Geçen Gün (Dün Dahil): <strong>${passedDaysInQuarter}</strong> | 
+                Kalan Gün (Bugün Dahil): <strong>${remainingDaysInQuarter}</strong>
+            `;
+
+            resultContainer.classList.remove('hidden');
+        });
+    })();
+</script>
+<!-- END OF FILE ceyrek_ortalama.html -->

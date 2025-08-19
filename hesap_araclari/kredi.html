@@ -1,0 +1,257 @@
+<!-- Kapsayıcıyı güncelledik -->
+<div id="kredi-hesaplayici" class="d-flex flex-column align-items-center">
+
+    <div class="calculator-container w-100">
+        <!-- ANA KREDİ HESAPLAMA SÜTUNU -->
+        <div class="calculator-column" id="kredi-col-1">
+            <h3>Kredi Bilgileri</h3>
+            <form id="kredi-form-1" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="kredi-tutar-1">Kredi Tutarı (TL)</label>
+                    <input type="text" id="kredi-tutar-1" inputmode="numeric" placeholder="Örn: 100.000" required>
+                </div>
+                 <div class="form-group">
+                    <label for="kredi-tipi-1">Kredi Tipi</label>
+                    <select id="kredi-tipi-1">
+                        <option value="bireysel">Bireysel Kredi</option>
+                        <option value="taksitli">Ticari Kredi (TTK)</option>
+                        <option value="rotatif">Rotatif Kredi</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="kredi-vade-1" id="vade-label-1">Vade (Ay)</label>
+                    <input type="number" id="kredi-vade-1" placeholder="Örn: 36" required>
+                </div>
+                <div class="form-group">
+                    <label for="kredi-faiz-1" id="faiz-label-1">Aylık Faiz Oranı (%)</label>
+                    <input type="text" id="kredi-faiz-1" inputmode="decimal" placeholder="Örn: 3,49" required>
+                </div>
+                <div class="button-group">
+                    <button type="button" id="kredi-hesapla-btn-1" class="btn btn-primary"><i class="fa-solid fa-calculator"></i> Hesapla</button>
+                    <button type="button" id="kredi-karsilastir-btn-1" class="btn btn-secondary" disabled><i class="fa-solid fa-code-compare"></i> Karşılaştır</button>
+                </div>
+            </form>
+            <table class="results-table" id="kredi-sonuc-1">
+                <tbody>
+                    <tr id="aylik-taksit-row-1">
+                        <td>Aylık Taksit</td>
+                        <td data-result="aylik-taksit">0,00 TL</td>
+                    </tr>
+                    <tr>
+                        <td>Faiz Maliyeti</td>
+                        <td data-result="toplam-faiz">0,00 TL</td>
+                    </tr>
+                     <tr>
+                        <td>Toplam Vergi (BSMV + KKDF)</td>
+                        <td data-result="toplam-vergi">0,00 TL</td>
+                    </tr>
+                    <tr class="total-net">
+                        <td>Toplam Geri Ödeme</td>
+                        <td data-result="toplam-odeme">0,00 TL</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- KARŞILAŞTIRMA SÜTUNU -->
+        <div class="calculator-column hidden" id="kredi-col-2">
+            <h3>Karşılaştırma</h3>
+            <form id="kredi-form-2" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="kredi-tutar-2">Kredi Tutarı (TL)</label>
+                    <input type="text" id="kredi-tutar-2" inputmode="numeric" required>
+                </div>
+                 <div class="form-group">
+                    <label for="kredi-tipi-2">Kredi Tipi</label>
+                     <select id="kredi-tipi-2">
+                        <option value="bireysel">Bireysel Kredi</option>
+                        <option value="taksitli">Ticari Kredi (TTK)</option>
+                        <option value="rotatif">Rotatif Kredi</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="kredi-vade-2" id="vade-label-2">Vade (Ay)</label>
+                    <input type="number" id="kredi-vade-2" required>
+                </div>
+                <div class="form-group">
+                    <label for="kredi-faiz-2" id="faiz-label-2">Aylık Faiz Oranı (%)</label>
+                    <input type="text" id="kredi-faiz-2" inputmode="decimal" placeholder="Yeni oranı girin" required>
+                </div>
+                <div class="button-group">
+                    <button type="button" id="kredi-hesapla-btn-2" class="btn btn-primary"><i class="fa-solid fa-calculator"></i> Hesapla</button>
+                </div>
+            </form>
+            <table class="results-table" id="kredi-sonuc-2">
+                <tbody>
+                     <tr id="aylik-taksit-row-2">
+                        <td>Aylık Taksit</td>
+                        <td data-result="aylik-taksit">0,00 TL</td>
+                    </tr>
+                    <tr>
+                        <td>Faiz Maliyeti</td>
+                        <td data-result="toplam-faiz">0,00 TL</td>
+                    </tr>
+                     <tr>
+                        <td>Toplam Vergi (BSMV + KKDF)</td>
+                        <td data-result="toplam-vergi">0,00 TL</td>
+                    </tr>
+                    <tr class="total-net">
+                        <td>Toplam Geri Ödeme</td>
+                        <td data-result="toplam-odeme">0,00 TL</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- FARK GÖSTERGE ALANI -->
+    <div id="kredi-fark-container" class="hidden">
+        <span id="fark-metni"></span>
+    </div>
+
+</div>
+
+
+<script>
+    (() => {
+        const container = document.getElementById('kredi-hesaplayici');
+        if (!container) return;
+
+        let ilkToplamGeriOdeme = 0; // Karşılaştırma için
+
+        // Vergi Oranları Sabitleri
+        const KKDF_ORANI = 0.15;
+        const BSMV_BIREYSEL = 0.15;
+        const BSMV_TICARI = 0.05;
+
+        // --- YARDIMCI FONKSİYONLAR ---
+        const formatCurrency = (value) => value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+        const parseFloatComma = (value) => parseFloat(String(value).replace(',', '.'));
+        const parseFormattedNumber = (value) => parseFloat(String(value).replace(/\./g, ''));
+        const formatNumberInput = (input) => {
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                e.target.value = value ? new Intl.NumberFormat('tr-TR').format(value) : '';
+            });
+        };
+
+        // --- HESAPLAMA MANTIĞI ---
+        const calculateKredi = (krediTipi, tutar, vade, faizOrani) => {
+            if (!tutar || !vade || isNaN(tutar) || isNaN(vade) || isNaN(faizOrani)) {
+                return { taksit: 0, toplamOdeme: 0, toplamFaiz: 0, toplamVergi: 0 };
+            }
+
+            // Kredi tipine göre vergi oranlarını belirle
+            const bsmvOrani = (krediTipi === 'bireysel') ? BSMV_BIREYSEL : BSMV_TICARI;
+            const kkdfOrani = (krediTipi === 'bireysel') ? KKDF_ORANI : 0; // YENİ: Ticari ve Rotatif'te KKDF %0
+            
+            let taksit = 0, toplamOdeme = 0, toplamFaiz = 0, toplamVergi = 0;
+
+            if (krediTipi === 'taksitli' || krediTipi === 'bireysel') {
+                const aylikFaiz = faizOrani / 100;
+                if (aylikFaiz > 0) {
+                    const etkinAylikOran = aylikFaiz * (1 + bsmvOrani + kkdfOrani);
+                    taksit = tutar * (etkinAylikOran * Math.pow(1 + etkinAylikOran, vade)) / (Math.pow(1 + etkinAylikOran, vade) - 1);
+                } else {
+                    taksit = tutar / vade;
+                }
+                toplamOdeme = taksit * vade;
+                const toplamMaliyet = toplamOdeme - tutar;
+                toplamFaiz = toplamMaliyet / (1 + bsmvOrani + kkdfOrani);
+                toplamVergi = toplamMaliyet - toplamFaiz;
+
+            } else if (krediTipi === 'rotatif') {
+                const yillikFaiz = faizOrani / 100; // YENİ: Gelen oran yıllık
+                const gunlukFaiz = yillikFaiz / 365; // Yıllık oranı günlüğe çevir
+                toplamFaiz = tutar * gunlukFaiz * vade;
+                toplamVergi = toplamFaiz * (bsmvOrani + kkdfOrani); // kkdfOrani burada 0 olacak
+                toplamOdeme = tutar + toplamFaiz + toplamVergi;
+            }
+            
+            return { taksit, toplamOdeme, toplamFaiz, toplamVergi };
+        };
+
+        const updateResults = (tableElement, results, krediTipi) => {
+            const taksitRow = tableElement.querySelector('[id^="aylik-taksit-row"]');
+            if (krediTipi === 'rotatif') {
+                taksitRow.classList.add('hidden');
+            } else {
+                taksitRow.classList.remove('hidden');
+                tableElement.querySelector('[data-result="aylik-taksit"]').textContent = formatCurrency(results.taksit);
+            }
+            tableElement.querySelector('[data-result="toplam-faiz"]').textContent = formatCurrency(results.toplamFaiz);
+            tableElement.querySelector('[data-result="toplam-vergi"]').textContent = formatCurrency(results.toplamVergi);
+            tableElement.querySelector('[data-result="toplam-odeme"]').textContent = formatCurrency(results.toplamOdeme);
+        };
+        
+        const setupColumn = (colNumber) => {
+            const krediTipiSelect = container.querySelector(`#kredi-tipi-${colNumber}`);
+            const vadeLabel = container.querySelector(`#vade-label-${colNumber}`);
+            const faizLabel = container.querySelector(`#faiz-label-${colNumber}`); // Faiz etiketini seç
+            
+            formatNumberInput(container.querySelector(`#kredi-tutar-${colNumber}`));
+
+            // Etiketleri dinamik olarak değiştiren olay
+            krediTipiSelect.addEventListener('change', () => {
+                if (krediTipiSelect.value === 'rotatif') {
+                    vadeLabel.textContent = 'Vade (Gün)';
+                    faizLabel.textContent = 'Yıllık Faiz Oranı (%)';
+                } else {
+                    vadeLabel.textContent = 'Vade (Ay)';
+                    faizLabel.textContent = 'Aylık Faiz Oranı (%)';
+                }
+            });
+
+            container.querySelector(`#kredi-hesapla-btn-${colNumber}`).addEventListener('click', () => {
+                const krediTipi = krediTipiSelect.value;
+                const tutar = parseFormattedNumber(container.querySelector(`#kredi-tutar-${colNumber}`).value);
+                const vade = parseInt(container.querySelector(`#kredi-vade-${colNumber}`).value);
+                const faizOrani = parseFloatComma(container.querySelector(`#kredi-faiz-${colNumber}`).value);
+                
+                const results = calculateKredi(krediTipi, tutar, vade, faizOrani);
+                const sonucTablosu = container.querySelector(`#kredi-sonuc-${colNumber}`);
+                updateResults(sonucTablosu, results, krediTipi);
+                
+                if (colNumber === 1) {
+                    ilkToplamGeriOdeme = results.toplamOdeme;
+                    container.querySelector('#kredi-karsilastir-btn-1').disabled = !(tutar > 0);
+                    container.querySelector('#kredi-fark-container').classList.add('hidden');
+                } else {
+                    const farkContainer = container.querySelector('#kredi-fark-container');
+                    const farkMetni = farkContainer.querySelector('#fark-metni');
+                    const ikinciToplamGeriOdeme = results.toplamOdeme;
+                    const fark = ikinciToplamGeriOdeme - ilkToplamGeriOdeme;
+                    
+                    farkContainer.className = 'hidden';
+
+                    if (fark < 0) {
+                        farkMetni.textContent = `İkinci seçenek toplamda ${formatCurrency(Math.abs(fark))} daha avantajlı.`;
+                        farkContainer.classList.add('fark-pozitif');
+                    } else if (fark > 0) {
+                        farkMetni.textContent = `İkinci seçenek toplamda ${formatCurrency(fark)} daha maliyetli.`;
+                        farkContainer.classList.add('fark-negatif');
+                    } else {
+                        farkMetni.textContent = 'İki seçeneğin toplam geri ödemesi arasında fark yoktur.';
+                        farkContainer.classList.add('fark-notr');
+                    }
+                    farkContainer.classList.remove('hidden');
+                }
+            });
+        };
+        
+        setupColumn(1);
+        setupColumn(2);
+        
+        container.querySelector('#kredi-karsilastir-btn-1').addEventListener('click', () => {
+            container.querySelector('#kredi-col-2').classList.remove('hidden');
+            container.querySelector('#kredi-tutar-2').value = container.querySelector('#kredi-tutar-1').value;
+            container.querySelector('#kredi-vade-2').value = container.querySelector('#kredi-vade-1').value;
+            container.querySelector('#kredi-tipi-2').value = container.querySelector('#kredi-tipi-1').value;
+            // Değişikliği tetikle ki etiketler güncellensin
+            container.querySelector('#kredi-tipi-2').dispatchEvent(new Event('change'));
+            const faizInput2 = container.querySelector('#kredi-faiz-2');
+            faizInput2.value = '';
+            faizInput2.focus();
+        });
+    })();
+</script>

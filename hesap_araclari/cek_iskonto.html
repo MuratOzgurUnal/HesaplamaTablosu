@@ -1,0 +1,243 @@
+<!-- START OF FILE cek_iskonto.html -->
+
+<style>
+    /* Bu araca özel tablo stilleri */
+    #cek-iskonto-hesaplayici .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+    #cek-iskonto-hesaplayici table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+    }
+    #cek-iskonto-hesaplayici th, #cek-iskonto-hesaplayici td {
+        border: 1px solid var(--light-gray);
+        padding: 0.75rem;
+        text-align: center;
+        vertical-align: middle;
+    }
+    #cek-iskonto-hesaplayici th {
+        background-color: var(--background-color);
+        font-weight: 600;
+    }
+    #cek-iskonto-hesaplayici .cek-vadesi,
+    #cek-iskonto-hesaplayici .cek-tutari {
+        font-size: 1.1rem;
+        font-weight: 500;
+        padding: 0.8rem;
+        text-align: center;
+        min-width: 180px;
+    }
+    #cek-iskonto-hesaplayici .delete-cek-btn {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1;
+    }
+    #cek-iskonto-hesaplayici .total-summary {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--light-gray);
+    }
+    #cek-iskonto-hesaplayici .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--light-gray);
+    }
+    #cek-iskonto-hesaplayici .summary-row:last-child {
+        border-bottom: none;
+    }
+    #cek-iskonto-hesaplayici .summary-row.net-total {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-top: 1rem;
+    }
+</style>
+
+<div id="cek-iskonto-hesaplayici">
+    <h3>Çek Bilgileri</h3>
+    
+    <!-- GÜNCELLENDİ: Faiz ve Kullandırım Ücreti alanları yan yana -->
+    <div class="form-group" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem;">
+        <div style="flex: 1; min-width: 200px; max-width: 300px;">
+            <label for="global-faiz" style="text-align: center; display: block; font-weight: 600;">Güncel Faiz Oranı (%)</label>
+            <input type="text" id="global-faiz" class="form-group" inputmode="decimal" placeholder="Örn: 52,5" style="text-align: center; font-size: 1.2rem;">
+        </div>
+        <!-- YENİ: Kullanıcının gireceği kullandırım ücreti oranı alanı -->
+        <div style="flex: 1; min-width: 200px; max-width: 300px;">
+            <label for="global-kullandirim-ucreti" style="text-align: center; display: block; font-weight: 600;">Kullandırım Ücreti Oranı (%)</label>
+            <input type="text" id="global-kullandirim-ucreti" class="form-group" inputmode="decimal" placeholder="Örn: 1,1" style="text-align: center; font-size: 1.2rem;">
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Çek Vadesi</th>
+                    <th>Çek Tutarı (TL)</th>
+                    <th>Sil</th>
+                </tr>
+            </thead>
+            <tbody id="cek-listesi">
+                <!-- Çek satırları buraya dinamik olarak eklenecek -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="button-group" style="justify-content: space-between;">
+        <button id="yeni-cek-ekle-btn" class="btn btn-success"><i class="fa-solid fa-plus"></i> Yeni Çek Ekle</button>
+        <button id="hesapla-btn" class="btn btn-primary"><i class="fa-solid fa-calculator"></i> Tümünü Hesapla</button>
+    </div>
+
+    <!-- Sonuç Alanı -->
+    <div id="sonuc-container" class="total-summary hidden">
+        <h3 style="text-align:center; margin-bottom: 1rem;">Hesaplama Özeti</h3>
+        <div class="summary-row"><span>Toplam Çek Tutarı:</span><span id="toplam-cek-tutari">0,00 TL</span></div>
+        <div class="summary-row"><span>Toplam Faiz (İskonto):</span><span id="toplam-faiz">0,00 TL</span></div>
+        <div class="summary-row"><span>Toplam Kullandırım Ücreti:</span><span id="toplam-kullandirim-ucreti">0,00 TL</span></div>
+        <div class="summary-row"><span>Toplam BSMV:</span><span id="toplam-bsmv">0,00 TL</span></div>
+        <div class="summary-row net-total"><span>Hesaba Geçecek Net Tutar:</span><span id="hesaba-gececek-tutar">0,00 TL</span></div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const container = document.getElementById('cek-iskonto-hesaplayici');
+        if (!container) return;
+
+        // Sabitler
+        // const KULLANDIRIM_UCRETI_ORANI = 0.011; // KALDIRILDI: Artık kullanıcıdan alınacak.
+        const BSMV_ORANI = 0.05;
+
+        // DOM Elementleri
+        const globalFaizInput = container.querySelector('#global-faiz');
+        const kullandirimUcretiInput = container.querySelector('#global-kullandirim-ucreti'); // YENİ
+        const cekListesi = container.querySelector('#cek-listesi');
+        const yeniCekEkleBtn = container.querySelector('#yeni-cek-ekle-btn');
+        const hesaplaBtn = container.querySelector('#hesapla-btn');
+        const sonucContainer = container.querySelector('#sonuc-container');
+
+        // Yardımcı Fonksiyonlar
+        const formatCurrency = (value) => value.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+        const parseFormattedNumber = (value) => parseFloat(String(value).replace(/\./g, '').replace(',', '.'));
+        const parseFloatComma = (value) => parseFloat(String(value).replace(',', '.'));
+        const formatNumberInput = (input) => {
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                e.target.value = value ? new Intl.NumberFormat('tr-TR').format(value) : '';
+            });
+        };
+
+        // Yeni çek satırı oluşturan fonksiyon
+        const createCekRow = () => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="date" class="cek-vadesi form-group"></td>
+                <td><input type="text" class="cek-tutari form-group" inputmode="numeric" placeholder="Örn: 100.000"></td>
+                <td><button type="button" class="delete-cek-btn">×</button></td>
+            `;
+            cekListesi.appendChild(row);
+            formatNumberInput(row.querySelector('.cek-tutari'));
+        };
+        
+        createCekRow();
+
+        yeniCekEkleBtn.addEventListener('click', createCekRow);
+
+        cekListesi.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-cek-btn')) {
+                if (cekListesi.rows.length > 1) {
+                    e.target.closest('tr').remove();
+                } else {
+                    alert("En az bir çek satırı kalmalıdır.");
+                }
+            }
+        });
+
+        // Ana Hesaplama Fonksiyonu
+        hesaplaBtn.addEventListener('click', () => {
+            let toplamCekTutari = 0, toplamFaiz = 0, toplamKullandirimUcreti = 0, toplamBsmv = 0, toplamNetTutar = 0;
+            let isValid = true;
+            
+            // GÜNCELLENDİ: Değerler kullanıcıdan alınıyor
+            const globalFaiz = parseFloatComma(globalFaizInput.value);
+            const kullandirimOrani = parseFloatComma(kullandirimUcretiInput.value);
+
+            if (isNaN(globalFaiz)) {
+                alert("Lütfen geçerli bir Genel Faiz Oranı girin.");
+                return;
+            }
+            // YENİ: Kullandırım ücreti oranı için doğrulama
+            if (isNaN(kullandirimOrani)) {
+                alert("Lütfen geçerli bir Kullandırım Ücreti Oranı girin.");
+                return;
+            }
+
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const rows = cekListesi.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                if (!isValid) return;
+
+                const vadeInput = row.querySelector('.cek-vadesi');
+                const tutarInput = row.querySelector('.cek-tutari');
+                const vade = new Date(vadeInput.value);
+                const tutar = parseFormattedNumber(tutarInput.value);
+
+                if (!vadeInput.value || isNaN(tutar)) {
+                    isValid = false;
+                    return;
+                }
+
+                const gunSayisi = Math.ceil((vade - today) / (1000 * 60 * 60 * 24));
+                if (gunSayisi < 0) {
+                    alert(`Vadesi geçmiş bir çek var (${vadeInput.value}). Lütfen tarihi düzeltin.`);
+                    isValid = false;
+                    return;
+                }
+
+                const faizTutari = (tutar * (globalFaiz / 100) / 365) * gunSayisi;
+                // DEĞİŞTİRİLDİ: Artık sabit oran yerine kullanıcı girdisi kullanılıyor
+                const kullandirimUcreti = tutar * (kullandirimOrani / 100); 
+                const bsmv = faizTutari * BSMV_ORANI;
+                const netTutar = tutar - faizTutari - kullandirimUcreti - bsmv;
+
+                toplamCekTutari += tutar;
+                toplamFaiz += faizTutari;
+                toplamKullandirimUcreti += kullandirimUcreti;
+                toplamBsmv += bsmv;
+                toplamNetTutar += netTutar;
+            });
+
+            if (!isValid) {
+                alert("Lütfen tüm çek bilgilerini eksiksiz ve doğru bir şekilde doldurun.");
+                return;
+            }
+
+            // Sonuçları ekrana yazdır
+            container.querySelector('#toplam-cek-tutari').textContent = formatCurrency(toplamCekTutari);
+            container.querySelector('#toplam-faiz').textContent = formatCurrency(toplamFaiz);
+            container.querySelector('#toplam-kullandirim-ucreti').textContent = formatCurrency(toplamKullandirimUcreti);
+            container.querySelector('#toplam-bsmv').textContent = formatCurrency(toplamBsmv);
+            container.querySelector('#hesaba-gececek-tutar').textContent = formatCurrency(toplamNetTutar);
+            
+            sonucContainer.classList.remove('hidden');
+        });
+
+    })();
+</script>
+<!-- END OF FILE cek_iskonto.html -->
